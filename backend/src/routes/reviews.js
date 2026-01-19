@@ -1,10 +1,9 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Get reviews for a product
 router.get('/product/:productId', async (req, res) => {
@@ -42,7 +41,6 @@ router.get('/product/:productId', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get reviews error:', error);
     res.status(500).json({ message: 'Failed to fetch reviews' });
   }
 });
@@ -106,7 +104,6 @@ router.post('/', authenticateToken, [
       review
     });
   } catch (error) {
-    console.error('Create review error:', error);
     res.status(500).json({ message: 'Failed to create review' });
   }
 });
@@ -155,7 +152,6 @@ router.put('/:id', authenticateToken, [
       review: updatedReview
     });
   } catch (error) {
-    console.error('Update review error:', error);
     res.status(500).json({ message: 'Failed to update review' });
   }
 });
@@ -183,7 +179,6 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
     res.json({ message: 'Review deleted successfully' });
   } catch (error) {
-    console.error('Delete review error:', error);
     res.status(500).json({ message: 'Failed to delete review' });
   }
 });
@@ -207,7 +202,6 @@ router.get('/user/me', authenticateToken, async (req, res) => {
 
     res.json({ reviews });
   } catch (error) {
-    console.error('Get user reviews error:', error);
     res.status(500).json({ message: 'Failed to fetch user reviews' });
   }
 });

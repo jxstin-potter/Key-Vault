@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+import prisma from './lib/prisma.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -22,7 +22,6 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 dotenv.config();
 
 const app = express();
-const prisma = new PrismaClient();
 
 // CRITICAL FIX: Use Render's injected port, no fallback
 const PORT = process.env.PORT;

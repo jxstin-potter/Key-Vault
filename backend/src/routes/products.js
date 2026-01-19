@@ -1,10 +1,9 @@
 import express from 'express';
 import { body, validationResult, query } from 'express-validator';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Get all products with filtering and pagination
 router.get('/', [
@@ -105,7 +104,6 @@ router.get('/', [
       }
     });
   } catch (error) {
-    console.error('Get products error:', error);
     res.status(500).json({ message: 'Failed to fetch products' });
   }
 });
@@ -160,7 +158,6 @@ router.get('/:id', async (req, res) => {
 
     res.json({ product: productWithRating });
   } catch (error) {
-    console.error('Get product error:', error);
     res.status(500).json({ message: 'Failed to fetch product' });
   }
 });
@@ -212,7 +209,6 @@ router.post('/', authenticateToken, requireAdmin, [
       product
     });
   } catch (error) {
-    console.error('Create product error:', error);
     res.status(500).json({ message: 'Failed to create product' });
   }
 });
@@ -271,7 +267,6 @@ router.put('/:id', authenticateToken, requireAdmin, [
       product
     });
   } catch (error) {
-    console.error('Update product error:', error);
     res.status(500).json({ message: 'Failed to update product' });
   }
 });
@@ -298,7 +293,6 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
     res.json({ message: 'Product deleted successfully' });
   } catch (error) {
-    console.error('Delete product error:', error);
     res.status(500).json({ message: 'Failed to delete product' });
   }
 });
@@ -335,7 +329,6 @@ router.delete('/bulk', authenticateToken, requireAdmin, [
       deletedCount: productIds.length
     });
   } catch (error) {
-    console.error('Bulk delete products error:', error);
     res.status(500).json({ message: 'Failed to delete products' });
   }
 });

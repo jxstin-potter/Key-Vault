@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../lib/prisma.js';
 
 export const authenticateToken = async (req, res, next) => {
   try {
@@ -13,7 +11,6 @@ export const authenticateToken = async (req, res, next) => {
     }
 
     if (!process.env.JWT_SECRET) {
-      console.error('JWT_SECRET is not configured');
       return res.status(500).json({ message: 'Server configuration error' });
     }
 
@@ -38,7 +35,6 @@ export const authenticateToken = async (req, res, next) => {
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ message: 'Token expired' });
     }
-    console.error('Authentication error:', error);
     return res.status(500).json({ message: 'Authentication error' });
   }
 };
@@ -49,10 +45,3 @@ export const requireAdmin = (req, res, next) => {
   }
   next();
 };
-
-export const requireAuth = (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-  next();
-}; 

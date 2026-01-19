@@ -1,9 +1,8 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Get user's orders (or all orders for admin)
 router.get('/', async (req, res) => {
@@ -40,7 +39,6 @@ router.get('/', async (req, res) => {
 
     res.json({ orders });
   } catch (error) {
-    console.error('Get orders error:', error);
     res.status(500).json({ message: 'Failed to fetch orders' });
   }
 });
@@ -77,7 +75,6 @@ router.get('/:id', async (req, res) => {
 
     res.json({ order });
   } catch (error) {
-    console.error('Get order error:', error);
     res.status(500).json({ message: 'Failed to fetch order' });
   }
 });
@@ -125,58 +122,7 @@ router.get('/stats', async (req, res) => {
       recentOrders
     });
   } catch (error) {
-    console.error('Get order stats error:', error);
     res.status(500).json({ message: 'Failed to fetch order statistics' });
-  }
-});
-
-// Update order status (admin only)
-router.put('/:id/status', async (req, res) => {
-  try {
-    if (req.user.role !== 'ADMIN') {
-      return res.status(403).json({ message: 'Admin access required' });
-    }
-
-    const { id } = req.params;
-    const { status } = req.body;
-
-    const validStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
-    }
-
-    const order = await prisma.order.update({
-      where: { id },
-      data: { status },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        },
-        orderItems: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                images: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    res.json({ 
-      message: 'Order status updated successfully',
-      order 
-    });
-  } catch (error) {
-    console.error('Update order status error:', error);
-    res.status(500).json({ message: 'Failed to update order status' });
   }
 });
 
@@ -281,33 +227,29 @@ router.post('/create', [
         where: { userId: req.user.id }
       });
 
-      return newOrder;
-    });
-
-    // Get order with items
-    const orderWithItems = await prisma.order.findUnique({
-      where: { id: order.id },
-      include: {
-        orderItems: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                images: true
+      return await tx.order.findUnique({
+        where: { id: newOrder.id },
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  images: true
+                }
               }
             }
           }
         }
-      }
+      });
     });
 
     res.status(201).json({
       message: 'Order created successfully',
-      order: orderWithItems
+      order
     });
   } catch (error) {
-    console.error('Create order error:', error);
     res.status(500).json({ message: 'Failed to create order' });
   }
 });
@@ -317,6 +259,10 @@ router.put('/:id/status', [
   body('status').isIn(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'])
 ], async (req, res) => {
   try {
+    if (req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -325,20 +271,34 @@ router.put('/:id/status', [
     const { id } = req.params;
     const { status } = req.body;
 
-    // Check if order exists
     const order = await prisma.order.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
     });
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Update order status
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: { status },
       include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
         orderItems: {
           include: {
             product: {
@@ -354,11 +314,10 @@ router.put('/:id/status', [
     });
 
     res.json({
-      message: 'Order status updated',
+      message: 'Order status updated successfully',
       order: updatedOrder
     });
   } catch (error) {
-    console.error('Update order status error:', error);
     res.status(500).json({ message: 'Failed to update order status' });
   }
 });

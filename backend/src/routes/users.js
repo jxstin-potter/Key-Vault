@@ -1,9 +1,8 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Get all users (admin only)
 router.get('/', requireAdmin, async (req, res) => {
@@ -62,7 +61,6 @@ router.get('/', requireAdmin, async (req, res) => {
 
     res.json({ users: usersWithStats });
   } catch (error) {
-    console.error('Get users error:', error);
     res.status(500).json({ message: 'Failed to fetch users' });
   }
 });
@@ -127,7 +125,6 @@ router.get('/:id', requireAdmin, async (req, res) => {
 
     res.json({ user: userWithStats });
   } catch (error) {
-    console.error('Get user error:', error);
     res.status(500).json({ message: 'Failed to fetch user' });
   }
 });
@@ -168,7 +165,6 @@ router.put('/:id/role', requireAdmin, async (req, res) => {
       user: updatedUser
     });
   } catch (error) {
-    console.error('Update user role error:', error);
     res.status(500).json({ message: 'Failed to update user role' });
   }
 });
@@ -228,7 +224,6 @@ router.get('/me/stats', async (req, res) => {
 
     res.json({ stats: userStats });
   } catch (error) {
-    console.error('Get user stats error:', error);
     res.status(500).json({ message: 'Failed to fetch user statistics' });
   }
 });

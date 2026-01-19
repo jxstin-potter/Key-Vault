@@ -1,9 +1,8 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Get user's cart
 router.get('/', async (req, res) => {
@@ -37,7 +36,6 @@ router.get('/', async (req, res) => {
       itemCount: validCartItems.length
     });
   } catch (error) {
-    console.error('Get cart error:', error);
     res.status(500).json({ message: 'Failed to fetch cart' });
   }
 });
@@ -143,7 +141,6 @@ router.post('/add', [
       item: newItem
     });
   } catch (error) {
-    console.error('Add to cart error:', error);
     res.status(500).json({ message: 'Failed to add item to cart' });
   }
 });
@@ -203,7 +200,6 @@ router.put('/update/:itemId', [
       item: updatedItem
     });
   } catch (error) {
-    console.error('Update cart error:', error);
     res.status(500).json({ message: 'Failed to update cart item' });
   }
 });
@@ -231,7 +227,6 @@ router.delete('/remove/:itemId', async (req, res) => {
 
     res.json({ message: 'Item removed from cart' });
   } catch (error) {
-    console.error('Remove from cart error:', error);
     res.status(500).json({ message: 'Failed to remove item from cart' });
   }
 });
@@ -245,7 +240,6 @@ router.delete('/clear', async (req, res) => {
 
     res.json({ message: 'Cart cleared' });
   } catch (error) {
-    console.error('Clear cart error:', error);
     res.status(500).json({ message: 'Failed to clear cart' });
   }
 });

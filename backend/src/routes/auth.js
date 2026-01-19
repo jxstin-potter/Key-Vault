@@ -2,11 +2,10 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Register
 router.post('/register', [
@@ -66,7 +65,6 @@ router.post('/register', [
       token
     });
   } catch (error) {
-    console.error('Registration error:', error);
     res.status(500).json({ message: 'Registration failed' });
   }
 });
@@ -122,7 +120,6 @@ router.post('/login', [
       token
     });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ message: 'Login failed' });
   }
 });
@@ -151,7 +148,6 @@ router.get('/me', authenticateToken, async (req, res) => {
 
     res.json({ user });
   } catch (error) {
-    console.error('Get user error:', error);
     res.status(500).json({ message: 'Failed to get user data' });
   }
 });
@@ -187,7 +183,6 @@ router.put('/profile', authenticateToken, [
       user: updatedUser
     });
   } catch (error) {
-    console.error('Update profile error:', error);
     res.status(500).json({ message: 'Failed to update profile' });
   }
 });

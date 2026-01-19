@@ -6,9 +6,6 @@ import toast from 'react-hot-toast';
 const isDevelopment = import.meta.env.DEV;
 const apiUrl = import.meta.env.VITE_API_URL || (isDevelopment ? 'http://localhost:5000/api' : 'https://your-backend-url.onrender.com/api');
 
-console.log('Environment:', isDevelopment ? 'Development' : 'Production');
-console.log('API URL:', apiUrl);
-
 // Create axios instance
 export const api = axios.create({
   baseURL: apiUrl,

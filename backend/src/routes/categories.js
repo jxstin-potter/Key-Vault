@@ -1,10 +1,9 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Get all categories
 router.get('/', async (req, res) => {
@@ -26,7 +25,6 @@ router.get('/', async (req, res) => {
 
     res.json({ categories: categoriesWithCount });
   } catch (error) {
-    console.error('Get categories error:', error);
     res.status(500).json({ message: 'Failed to fetch categories' });
   }
 });
@@ -91,7 +89,6 @@ router.get('/:id', async (req, res) => {
 
     res.json({ category: categoryWithProducts });
   } catch (error) {
-    console.error('Get category error:', error);
     res.status(500).json({ message: 'Failed to fetch category' });
   }
 });
@@ -128,7 +125,6 @@ router.post('/', authenticateToken, requireAdmin, [
       category
     });
   } catch (error) {
-    console.error('Create category error:', error);
     res.status(500).json({ message: 'Failed to create category' });
   }
 });
@@ -178,7 +174,6 @@ router.put('/:id', authenticateToken, requireAdmin, [
       category
     });
   } catch (error) {
-    console.error('Update category error:', error);
     res.status(500).json({ message: 'Failed to update category' });
   }
 });
@@ -215,7 +210,6 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
     res.json({ message: 'Category deleted successfully' });
   } catch (error) {
-    console.error('Delete category error:', error);
     res.status(500).json({ message: 'Failed to delete category' });
   }
 });

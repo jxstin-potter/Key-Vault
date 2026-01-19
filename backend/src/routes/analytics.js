@@ -1,28 +1,10 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma.js';
 import { Parser as Json2csvParser } from 'json2csv';
+import { requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
-// Middleware to check admin access
-const requireAdmin = (req, res, next) => {
-  console.log('Analytics middleware - User:', req.user);
-  console.log('Analytics middleware - User role:', req.user?.role);
-  
-  if (!req.user) {
-    console.log('Analytics middleware - No user found');
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-  
-  if (req.user.role !== 'ADMIN') {
-    console.log('Analytics middleware - User role is not ADMIN:', req.user.role);
-    return res.status(403).json({ message: 'Admin access required' });
-  }
-  
-  console.log('Analytics middleware - Admin access granted');
-  next();
-};
 
 // Test endpoint to check authentication
 router.get('/test', requireAdmin, (req, res) => {
@@ -195,7 +177,6 @@ router.get('/overview', requireAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Analytics overview error:', error);
     res.status(500).json({ message: 'Failed to fetch analytics overview' });
   }
 });
@@ -302,7 +283,6 @@ router.get('/sales', requireAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Sales analytics error:', error);
     res.status(500).json({ message: 'Failed to fetch sales analytics' });
   }
 });
@@ -376,17 +356,13 @@ router.get('/users', requireAdmin, async (req, res) => {
 
     res.json({
       users: {
-        userGrowth: userGrowth.map(item => ({
-          date: item.createdAt.toISOString().split('T')[0],
-          newUsers: item._count.id
-        })),
+        userGrowth,
         totalUsers: await prisma.user.count({ where: { role: 'USER' } }),
         activeUsers: activeUserDetails.length,
         topCustomers
       }
     });
   } catch (error) {
-    console.error('User analytics error:', error);
     res.status(500).json({ message: 'Failed to fetch user analytics' });
   }
 });
@@ -475,7 +451,6 @@ router.get('/products', requireAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Product analytics error:', error);
     res.status(500).json({ message: 'Failed to fetch product analytics' });
   }
 });
