@@ -102,10 +102,41 @@ app.get('/api', (req, res) => {
 app.get('/test-db', async (req, res) => {
   try {
     await prisma.$connect();
-    res.json({ status: 'Database connected successfully' });
+    const dbUrl = process.env.DATABASE_URL || 'not set';
+    const hostMatch = dbUrl.match(/@([^:/\s]+)/);
+    const host = hostMatch ? hostMatch[1] : 'unknown';
+    
+    res.json({ 
+      status: 'Database connected successfully',
+      host: host,
+      urlFormat: dbUrl.includes('render.com') ? 'Render format detected' : 'Check URL format'
+    });
   } catch (error) {
-    console.error('Database connection error:', error);
-    res.status(500).json({ error: 'Database connection failed', details: error.message });
+    const dbUrl = process.env.DATABASE_URL || 'not set';
+    const hostMatch = dbUrl.match(/@([^:/\s]+)/);
+    const host = hostMatch ? hostMatch[1] : 'unknown';
+    
+    let errorMessage = 'Database connection failed';
+    let troubleshooting = [];
+    
+    if (error.code === 'P1001') {
+      errorMessage = 'Cannot reach database server';
+      troubleshooting = [
+        'Database may be paused - check Render dashboard and resume if needed',
+        'Verify DATABASE_URL uses internal URL (ends with .render.com)',
+        'Ensure database service is linked to web service in Render',
+        'Check if database service is running in Render dashboard'
+      ];
+    }
+    
+    res.status(500).json({ 
+      error: errorMessage,
+      code: error.code,
+      message: error.message,
+      host: host,
+      troubleshooting: troubleshooting,
+      renderDashboard: 'https://dashboard.render.com'
+    });
   }
 });
 

@@ -30,7 +30,15 @@
    npm start
    ```
 5. **Add a Render Postgres add-on** and use its internal `DATABASE_URL`
-6. **Test:** Visit `/health` and `/api/products` on your Render backend URL
+   - Render will auto-set `DATABASE_URL` when you link the database
+   - Use the **Internal Database URL** (ends with `.render.com`, not `:5432`)
+   - If database is paused, resume it in Render dashboard
+6. **Test:** 
+   - Visit `/health` to check server status
+   - Visit `/test-db` to test database connection
+   - Visit `/api/products` to test API endpoints
+   
+**Troubleshooting:** See `DATABASE_TROUBLESHOOTING.md` for common connection issues
 
 ## **Security**
 - `.env` is ignored by git
