@@ -57,27 +57,27 @@ router.get('/', [
       if (maxPrice !== undefined) where.price.lte = maxPrice;
     }
 
-    // Get products with category and reviews
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        category: {
-          select: { id: true, name: true }
+    // Get products and total count in parallel (independent queries)
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: {
+          category: {
+            select: { id: true, name: true }
+          },
+          reviews: {
+            select: { rating: true }
+          },
+          _count: {
+            select: { reviews: true }
+          }
         },
-        reviews: {
-          select: { rating: true }
-        },
-        _count: {
-          select: { reviews: true }
-        }
-      },
-      orderBy: { [sortBy]: sortOrder },
-      skip,
-      take: limit
-    });
-
-    // Get total count for pagination
-    const total = await prisma.product.count({ where });
+        orderBy: { [sortBy]: sortOrder },
+        skip,
+        take: limit
+      }),
+      prisma.product.count({ where })
+    ]);
 
     // Calculate average rating for each product
     const productsWithRating = products.map(product => {

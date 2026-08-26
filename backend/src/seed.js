@@ -421,10 +421,16 @@ async function main() {
   ];
 
   console.log('📦 Creating products...');
-  for (const product of products) {
-    const created = await prisma.product.create({
-      data: product
-    });
+  const existingProductCount = await prisma.product.count();
+  if (existingProductCount > 0) {
+    console.log(`⚠️  ${existingProductCount} products already exist — skipping product creation to avoid duplicates.`);
+    console.log('   To reseed products from scratch, reset the database first (npm run db:push -- --force-reset).');
+  } else {
+    for (const product of products) {
+      await prisma.product.create({
+        data: product
+      });
+    }
   }
 
   // Get all created products and users for reviews
