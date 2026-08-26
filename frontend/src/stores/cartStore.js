@@ -1,8 +1,27 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { createElement } from 'react';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from './authStore';
+import { navigateTo } from '../lib/navigation';
+
+// Clicking the "added to cart" toast takes you to the cart
+function showAddedToCartToast() {
+  toast.success((t) =>
+    createElement(
+      'span',
+      {
+        onClick: () => {
+          toast.dismiss(t.id);
+          navigateTo('/cart');
+        },
+        style: { cursor: 'pointer' }
+      },
+      'Added to cart — view cart →'
+    )
+  );
+}
 
 export const useCartStore = create(
   persist(
@@ -41,7 +60,7 @@ export const useCartStore = create(
           const response = await api.post('/cart/add', { productId: String(productId), quantity });
           
           await get().loadCart();
-          toast.success('Added to cart!');
+          showAddedToCartToast();
           return { success: true };
         } catch (error) {
           set({ isLoading: false });

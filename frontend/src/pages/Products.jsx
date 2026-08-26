@@ -82,7 +82,6 @@ export default function Products() {
     e.stopPropagation();
     if (product.stock > 0) {
       addToCart(product.id, 1);
-      toast.success(`${product.name} added to cart`);
     } else {
       toast.error('Product is out of stock');
     }

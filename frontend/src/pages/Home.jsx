@@ -104,10 +104,7 @@ export default function Home() {
 
   const handleAddToCart = async (product) => {
     if (!product.inStock) return;
-    const result = await addToCart(product.id, 1);
-    if (result.success) {
-      toast.success(`${product.name} added to cart`);
-    }
+    await addToCart(product.id, 1);
   };
 
   // Calculate categorized products with uniqueness using useMemo

@@ -1,4 +1,5 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { setNavigate } from './lib/navigation';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import AdminLayout from './components/layout/AdminLayout';
@@ -27,11 +28,16 @@ import Profile from './pages/Profile';
 
 export default function AppRoutes() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { initializeAuth } = useAuthStore();
 
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
+
+  useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
 
   return (
     <div

@@ -82,10 +82,7 @@ export default function ProductDetail() {
     }
 
     try {
-      const result = await addToCart(product.id, quantity);
-      if (result.success) {
-        toast.success(`Added ${quantity} ${quantity === 1 ? 'item' : 'items'} to cart`);
-      }
+      await addToCart(product.id, quantity);
     } catch (error) {
       console.error('Failed to add to cart:', error);
     }
