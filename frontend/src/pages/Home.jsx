@@ -84,15 +84,9 @@ export default function Home() {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        // Fetch first 3 pages (30 products) to have enough for homepage sections
-        const promises = [];
-        for (let page = 1; page <= 3; page++) {
-          promises.push(productApi.getAllProducts(page, 10));
-        }
-        
-        const results = await Promise.all(promises);
-        const allProducts = results.flatMap(result => result.products || []);
-        setProducts(allProducts);
+        // Fetch 30 products in one request to have enough for homepage sections
+        const result = await productApi.getAllProducts(1, 30);
+        setProducts(result.products || []);
       } catch (error) {
         console.error('Failed to fetch products:', error);
         toast.error('Failed to load products. Please try again.');
