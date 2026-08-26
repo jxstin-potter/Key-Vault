@@ -325,10 +325,10 @@ export default function ProductDetail() {
               ) : (
                 <button
                   onClick={handleAddToCart}
-                  disabled={!product.inStock || isLoading}
+                  disabled={product.stock === 0 || isLoading}
                   className={cn(
                     "w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-lg",
-                    product.inStock && !isLoading
+                    product.stock > 0 && !isLoading
                       ? "bg-neutral-900 text-white hover:bg-neutral-800 shadow-none hover:shadow-md"
                       : "bg-neutral-200 text-neutral-500 cursor-not-allowed"
                   )}
