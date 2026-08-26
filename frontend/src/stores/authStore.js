@@ -19,15 +19,21 @@ export const useAuthStore = create(
           // Verify token is still valid
           api.get('/auth/me')
             .then(response => {
-              set({ 
-                user: response.data.user, 
+              set({
+                user: response.data.user,
                 isAuthenticated: true,
                 isLoading: false
               });
             })
-            .catch(() => {
-              // Token is invalid, clear auth
-              get().logout();
+            .catch((error) => {
+              if (error.response?.status === 401) {
+                // Token is genuinely invalid/expired, clear auth
+                get().logout();
+              } else {
+                // Transient failure (network error, backend cold start, etc.) -
+                // keep the persisted session instead of logging the user out
+                set({ isLoading: false });
+              }
             });
         } else {
           set({ isLoading: false });
