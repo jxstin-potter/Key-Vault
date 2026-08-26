@@ -11,7 +11,8 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(() => new URLSearchParams(window.location.search).get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('name'); // 'name', 'price', 'rating'
@@ -23,20 +24,32 @@ export default function Products() {
   const location = useLocation();
   const { addToCart } = useCartStore();
 
-  // Fetch products and categories on mount
+  // Debounce the search box so we don't fire a request on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch products and categories whenever the page, category, or search changes
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         const [productsData, categoriesData] = await Promise.all([
-          productApi.getAllProducts(currentPage, 10),
+          productApi.getAllProducts(currentPage, 10, {
+            ...(selectedCategory !== 'All' && { category: selectedCategory }),
+            ...(debouncedSearchTerm && { search: debouncedSearchTerm })
+          }),
           productApi.getCategories()
         ]);
-        
+
         setProducts(productsData.products || []);
         setTotalPages(productsData.pagination?.pages || 1);
         setTotalProducts(productsData.pagination?.total || 0);
-        
+
         const categoryArray = Array.isArray(categoriesData)
           ? categoriesData
           : categoriesData.categories;
@@ -50,7 +63,7 @@ export default function Products() {
     };
 
     fetchData();
-  }, [currentPage]);
+  }, [currentPage, selectedCategory, debouncedSearchTerm]);
 
   // On mount, set category from query param if present
   useEffect(() => {
@@ -174,7 +187,10 @@ export default function Products() {
               <Filter className="text-neutral-400" size={20} />
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               >
                 <option value="All">All Categories</option>
@@ -373,7 +389,7 @@ function ProductCard({ product, onAddToCart }) {
             <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center gap-2">
               <button
                 onClick={(e) => onAddToCart(e, product)}
-                disabled={!product.inStock}
+                disabled={product.stock === 0}
                 className="p-2 bg-white rounded-full shadow-lg hover:bg-primary-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Add to Cart"
               >
@@ -432,6 +448,7 @@ function ProductCard({ product, onAddToCart }) {
             <span className="text-xl font-bold text-neutral-900">${product.price}</span>
           </div>
           <button
+            onClick={(e) => onAddToCart(e, product)}
             disabled={product.stock === 0}
             className={cn(
               "px-4 py-2 rounded-lg font-medium transition-colors",
