@@ -10,9 +10,8 @@ A modern, full-stack e-commerce platform built with React 19, Express.js, and Po
 - **💳 Payment Integration**: Stripe payment processing (optional)
 - **📱 Responsive Design**: Mobile-first design with Tailwind CSS
 - **🚀 Modern Stack**: React 19, Express 4.18.2, Prisma ORM, PostgreSQL
-- **☁️ Cloud Deployed**: Render backend, Vercel frontend
+- **☁️ Cloud Deployed**: Render backend, Vercel frontend, Neon Postgres
 - **🔄 Auto Deploy**: Git-based deployment with health checks
-- **⚡ PowerShell Scripts**: Automated development and deployment workflows
 
 ## 🏗️ Architecture
 
@@ -27,21 +26,14 @@ commerceFlow-v2/
 │   ├── prisma/             # Database schema & migrations
 │   ├── render.yaml         # Render deployment config
 │   └── deploy-setup.js     # Deployment automation
-├── frontend/               # React/Vite application
-│   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── pages/          # Page components
-│   │   ├── stores/         # Zustand state management
-│   │   └── lib/            # API client & utilities
-│   ├── vercel.json         # Vercel deployment config
-│   └── vite.config.js      # Vite configuration
-├── scripts/                # PowerShell automation scripts
-│   ├── start-dev.ps1       # Development environment setup
-│   ├── deploy.ps1          # Deployment automation
-│   ├── deploy-easy.ps1     # Simplified deployment
-│   ├── maintenance.ps1     # System maintenance tasks
-│   └── check-health.ps1    # Health monitoring
-└── docs/                   # Documentation
+└── frontend/                # React/Vite application
+    ├── src/
+    │   ├── components/     # Reusable UI components
+    │   ├── pages/          # Page components
+    │   ├── stores/         # Zustand state management
+    │   └── lib/            # API client & utilities
+    ├── vercel.json          # Vercel deployment config
+    └── vite.config.js       # Vite configuration
 ```
 
 ## 🚀 Quick Start
@@ -50,6 +42,7 @@ commerceFlow-v2/
 - Node.js 18+
 - npm or yarn
 - Git
+- A Postgres database (this project uses [Neon](https://neon.tech), a serverless Postgres provider — see the note on connection strings below)
 - Render account (for backend)
 - Vercel account (for frontend)
 
@@ -61,23 +54,19 @@ commerceFlow-v2/
    cd commerceFlow-v2
    ```
 
-2. **One-command setup** (Windows PowerShell)
-   ```powershell
-   ./scripts/start-dev.ps1
-   ```
-
-3. **Manual setup**
+2. **Backend setup**
    ```bash
-   # Backend setup
    cd backend
-   cp env.example .env
+   # create .env — see "Environment Variables" below
    npm install
    npm run db:generate
    npm run db:push
    npm run db:seed
    npm run dev
+   ```
 
-   # Frontend setup (new terminal)
+3. **Frontend setup** (new terminal)
+   ```bash
    cd frontend
    echo "VITE_API_URL=http://localhost:5000/api" > .env.local
    npm install
@@ -119,22 +108,12 @@ npm run preview      # Preview production build
 npm run lint         # Run ESLint
 ```
 
-#### PowerShell Scripts
-```powershell
-./scripts/start-dev.ps1          # Start development environment
-./scripts/deploy.ps1             # Deploy to production
-./scripts/deploy-easy.ps1        # Simplified deployment
-./scripts/maintenance.ps1 -All   # Run all maintenance tasks
-./scripts/check-health.ps1       # Check system health
-./scripts/test-backend.ps1       # Test backend API
-```
-
 ### Environment Variables
 
 #### Backend (.env)
 ```bash
 # Required
-DATABASE_URL="postgresql://username:password@host:port/database"
+DATABASE_URL="postgresql://username:password@host/database?sslmode=require"
 JWT_SECRET="your-super-secret-jwt-key-minimum-32-characters"
 FRONTEND_URL="http://localhost:5173"
 
@@ -148,6 +127,8 @@ CLOUDINARY_API_KEY="your_cloudinary_api_key"
 CLOUDINARY_API_SECRET="your_cloudinary_api_secret"
 ```
 
+> **Neon connection strings**: Neon gives you two connection strings — a **pooled** one (hostname ends in `-pooler`) and a **direct** one (no `-pooler`). Use the **direct** string for `DATABASE_URL` in this project. Prisma's seed script opens multiple sequential connections, and Neon's pooled endpoint (PgBouncer in transaction mode) can cause `npm run db:seed` to hang indefinitely with no error. The direct string works reliably for migrations, seeding, and normal API traffic.
+
 #### Frontend (.env.local)
 ```bash
 VITE_API_URL=http://localhost:5000/api
@@ -158,8 +139,8 @@ VITE_API_URL=http://localhost:5000/api
 ### Render + Vercel Deployment
 
 1. **Database Setup**
-   - Create PostgreSQL service on Render
-   - Copy `DATABASE_URL` to backend environment variables
+   - Create a Postgres database (e.g. on [Neon](https://neon.tech))
+   - Copy the **direct** (non-pooled) connection string to the backend's `DATABASE_URL`
 
 2. **Backend Deployment (Render)**
    - Connect GitHub repository to Render
@@ -177,7 +158,7 @@ VITE_API_URL=http://localhost:5000/api
 
 #### Backend (Render)
 ```bash
-DATABASE_URL=your-render-postgresql-url
+DATABASE_URL=your-neon-direct-connection-string
 JWT_SECRET=your-production-jwt-secret
 NODE_ENV=production
 FRONTEND_URL=https://your-frontend-url.vercel.app
@@ -191,28 +172,26 @@ VITE_API_URL=https://your-backend-url.onrender.com/api
 ## 📊 Monitoring & Health Checks
 
 ### Health Check Endpoints
-- **Backend**: `GET /health`
+- **Backend**: `GET /health` — reports server status (note: this only checks that `DATABASE_URL` is *set*, not that the database is reachable)
+- **Backend**: `GET /test-db` — actually attempts a database connection and reports the result
 - **Frontend**: Automatic Vercel health checks
 
 ### Monitoring Tools
-- Render Dashboard (backend monitoring)
-- Vercel Dashboard (frontend monitoring)
-- Application logs via Render/Vercel dashboards
-- Database monitoring via Prisma Studio
+- Render Dashboard (backend monitoring, build/deploy logs)
+- Vercel Dashboard (frontend monitoring, build/deploy logs)
+- Neon Dashboard (database monitoring)
+- Database GUI via Prisma Studio (`npm run db:studio`)
 
 ### Performance Monitoring
 ```bash
 # Check backend health
 curl https://your-backend-url.onrender.com/health
 
+# Check database connectivity
+curl https://your-backend-url.onrender.com/test-db
+
 # Check frontend
 curl https://your-frontend-url.vercel.app
-
-# View logs (Render)
-render logs --service commerceflow-backend
-
-# View logs (Vercel)
-vercel logs
 ```
 
 ## 🔒 Security
@@ -221,7 +200,7 @@ vercel logs
 - ✅ JWT authentication with secure tokens
 - ✅ Password hashing with bcryptjs
 - ✅ CORS protection
-- ✅ Rate limiting with express-rate-limit
+- ✅ Rate limiting with express-rate-limit (100 requests / 15 min / IP, all routes)
 - ✅ Input validation with express-validator
 - ✅ SQL injection protection (Prisma)
 - ✅ XSS protection (Helmet)
@@ -256,19 +235,14 @@ curl -X GET http://localhost:5000/api/users/profile \
 # Open Prisma Studio
 npm run db:studio
 
-# Reset database
-npm run db:push --force-reset
+# Reset database (WARNING: destructive)
+npm run db:push -- --force-reset
 npm run db:seed
 ```
 
-### Automated Testing
-```powershell
-# Test backend health
-./scripts/test-backend.ps1
+> The seed script (`backend/src/seed.js`) uses `create`, not `upsert`, for products. Re-running `npm run db:seed` against an already-seeded database will either fail with unique constraint errors or (depending on schema constraints) silently create duplicate rows. Reset the database first if you need to re-seed.
 
-# Check system health
-./scripts/check-health.ps1
-```
+No automated test framework is configured yet. Testing is currently manual, via curl or the frontend UI.
 
 ## 🔄 CI/CD Pipeline
 
@@ -278,30 +252,15 @@ npm run db:seed
 3. Vercel automatically deploys frontend
 4. Health checks verify deployment
 
-### Manual Deployment
-```powershell
-# Deploy using PowerShell script
-./scripts/deploy.ps1
-
-# Or simplified deployment
-./scripts/deploy-easy.ps1
-```
-
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
 #### Database Connection Failed
-```bash
-# Check DATABASE_URL
-echo $DATABASE_URL
-
-# Test connection
-npm run db:studio
-
-# Reset database
-npm run db:push --force-reset
-```
+- Confirm `DATABASE_URL` is set correctly in the environment (Render dashboard for production, `.env` locally)
+- If using Neon, make sure you're using the **direct** connection string, not the pooled one
+- Hitting `GET /test-db` will show the exact error and which host it's trying to reach
+- Open Prisma Studio (`npm run db:studio`) to confirm the database is reachable from your machine
 
 #### CORS Errors
 - Verify `FRONTEND_URL` in backend environment
@@ -318,31 +277,15 @@ npm run db:push --force-reset
 - Check token expiration
 - Ensure frontend API URL is correct
 
-### Debug Commands
-```powershell
-# Check system health
-./scripts/check-health.ps1
-
-# Test backend API
-./scripts/test-backend.ps1
-
-# Run maintenance tasks
-./scripts/maintenance.ps1 -All
-```
-
-## 📚 Documentation
-
-- [Deployment Guide](docs/DEPLOYMENT.md) - Complete deployment instructions
-- [Development Guide](docs/DEVELOPMENT.md) - Development workflow and best practices
-- [Troubleshooting Guide](docs/TROUBLESHOOTING.md) - Common issues and solutions
-- [Portfolio Showcase](docs/PORTFOLIO_SHOWCASE.md) - Project highlights and features
+#### Render free-tier cold starts
+- On Render's free tier, the backend spins down after inactivity. The first request after idle can take 30–60s and may return a transient `503` while the instance wakes up — this is expected, not a bug. Subsequent requests succeed normally.
 
 ## 🛠️ Tech Stack
 
 ### Backend
 - **Runtime**: Node.js 18+
 - **Framework**: Express.js 4.18.2
-- **Database**: PostgreSQL with Prisma ORM 6.11.1
+- **Database**: PostgreSQL (Neon) with Prisma ORM 6.11.1
 - **Authentication**: JWT with bcryptjs
 - **Validation**: express-validator
 - **Security**: Helmet, CORS, Rate limiting
@@ -362,7 +305,6 @@ npm run db:push --force-reset
 - **Database GUI**: Prisma Studio
 - **Code Quality**: ESLint 9.30.1
 - **Build Tool**: Vite
-- **Automation**: PowerShell scripts
 
 ## 🤝 Contributing
 
@@ -384,18 +326,12 @@ This project is licensed under the ISC License.
 - [React Docs](https://react.dev/)
 - [Render Docs](https://render.com/docs)
 - [Vercel Docs](https://vercel.com/docs)
+- [Neon Docs](https://neon.tech/docs)
 
 ### Community
 - [Render Discord](https://discord.gg/render)
 - [Vercel Discord](https://discord.gg/vercel)
-- [GitHub Issues](https://github.com/your-repo/issues)
-- [Stack Overflow](https://stackoverflow.com/)
-
-### Maintenance
-- Run `./scripts/maintenance.ps1 -All` for regular maintenance
-- Check logs regularly via Render/Vercel dashboards
-- Monitor health check endpoints
-- Keep dependencies updated
+- [GitHub Issues](https://github.com/jxstin-potter/commerceFlow/issues)
 
 ---
 

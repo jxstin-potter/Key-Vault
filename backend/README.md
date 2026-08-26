@@ -1,18 +1,27 @@
 # 🚀 CommerceFlow Backend (Render Ready)
 
 ## **Environment Variables (set in Render dashboard):**
-- `DATABASE_URL` (from Render Postgres add-on)
+- `DATABASE_URL` (Postgres connection string — see Neon note below)
 - `JWT_SECRET` (any strong string)
 - `FRONTEND_URL` (your Vercel frontend URL, e.g. https://commerce-flow-v2.vercel.app)
 - `NODE_ENV=production`
 - **Do NOT set `PORT`** (Render injects it automatically)
 
+## **Database (Neon Postgres)**
+This backend uses [Neon](https://neon.tech) for Postgres. Neon gives you two connection strings:
+- **Pooled** (hostname ends in `-pooler`) — fine for normal API request traffic
+- **Direct** (no `-pooler`) — required for `npm run db:seed` and recommended for `DATABASE_URL` generally
+
+Prisma's seed script opens multiple sequential connections. Neon's pooled endpoint runs PgBouncer in transaction mode, which is incompatible with this and causes `npm run db:seed` to hang indefinitely with no error. Use the **direct** connection string to avoid this.
+
 ## **Prisma Setup**
 - Schema: `prisma/schema.prisma`
 - Migrate/seed: `npm run deploy` (runs `prisma generate`, `prisma db push`, and seeds the database)
+- The seed script (`src/seed.js`) uses `create`, not `upsert` — re-running it against an already-seeded database creates duplicate rows rather than updating existing ones. Reset first with `npm run db:push -- --force-reset` if you need to re-seed.
 
 ## **Health Check**
-- `/health` endpoint returns JSON status
+- `/health` returns JSON status — note this only checks that `DATABASE_URL` is *set*, not that the database is actually reachable
+- `/test-db` attempts a real database connection and reports success/failure with the target host
 
 ## **CORS**
 - Uses `process.env.FRONTEND_URL` for allowed origins
@@ -29,16 +38,12 @@
    ```
    npm start
    ```
-5. **Add a Render Postgres add-on** and use its internal `DATABASE_URL`
-   - Render will auto-set `DATABASE_URL` when you link the database
-   - Use the **Internal Database URL** (ends with `.render.com`, not `:5432`)
-   - If database is paused, resume it in Render dashboard
-6. **Test:** 
+5. **Set `DATABASE_URL`** to your Neon **direct** connection string
+   - Changing `DATABASE_URL` in the Render dashboard requires a redeploy to take effect — saving alone does not restart the running instance
+6. **Test:**
    - Visit `/health` to check server status
-   - Visit `/test-db` to test database connection
+   - Visit `/test-db` to test the actual database connection
    - Visit `/api/products` to test API endpoints
-   
-**Troubleshooting:** See `DATABASE_TROUBLESHOOTING.md` for common connection issues
 
 ## **Security**
 - `.env` is ignored by git
@@ -50,4 +55,4 @@
 
 ---
 
-**You are now Render ready!** 
+**You are now Render ready!**
