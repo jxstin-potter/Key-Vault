@@ -1,20 +1,28 @@
 import { useCartStore } from '../stores/cartStore';
 import { useAuthStore } from '../stores/authStore';
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Minus, Plus, Trash2, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { cn } from '../lib/utils';
 import LoginPrompt from '../components/LoginPrompt';
 
 export default function Cart() {
   const { isAuthenticated } = useAuthStore();
-  const { 
-    items, 
-    removeFromCart, 
-    updateQuantity, 
-    getTotal, 
+  const {
+    items,
+    removeFromCart,
+    updateQuantity,
+    getTotal,
     getItemCount,
-    isLoading 
+    loadCart,
+    isLoading
   } = useCartStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadCart();
+    }
+  }, [isAuthenticated]);
 
   const handleQuantityChange = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;
