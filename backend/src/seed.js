@@ -33,22 +33,13 @@ function generateKey(platform) {
   return code;
 }
 
-const img = (id) => [
-  'https://images.unsplash.com/' + id + '?w=400&h=400&fit=crop',
-  'https://images.unsplash.com/' + id + '?w=900&h=1200&fit=crop'
-];
-
-const ART = [
-  'photo-1552820728-8b83bb6b773f',
-  'photo-1538481199705-c710c4e965fc',
-  'photo-1550745165-9bc0b252726f',
-  'photo-1493711662062-fa541adb3fc8',
-  'photo-1511512578047-dfb367046420',
-  'photo-1542751371-adc38448a05e',
-  'photo-1509198397868-475647b2a1e5',
-  'photo-1591370874773-6702e8f12fd8',
-  'photo-1616588589676-62b3bd4ff6d2',
-  'photo-1526374965328-7f61d4dc18c5'
+// Real portrait box art from Steam's public CDN, keyed by each game's Steam
+// App ID (verified against store.steampowered.com/api/appdetails before use -
+// see scripts/update-game-art.js for the full id list and verification
+// method). The frontend only ever reads images[0], so a single accurate cover
+// beats two generic stock photos.
+const steamArt = (appId) => [
+  `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`
 ];
 
 // ---------------------------------------------------------------------------
@@ -68,42 +59,42 @@ const GENRES = [
 
 // keys: how many CD keys to mint. 0 deliberately models a sold-out listing.
 const GAMES = [
-  { name: 'Elden Ring', genre: 'Action', platform: 'STEAM', region: 'GLOBAL', price: 59.99, developer: 'FromSoftware', publisher: 'Bandai Namco', releaseDate: '2022-02-25', keys: 24, description: 'A vast open world of grim beauty from FromSoftware and George R. R. Martin. Explore the Lands Between, master punishing combat, and become Elden Lord.' },
-  { name: 'God of War', genre: 'Action', platform: 'STEAM', region: 'GLOBAL', price: 49.99, developer: 'Santa Monica Studio', publisher: 'PlayStation PC', releaseDate: '2022-01-14', keys: 18, description: 'Kratos and his son Atreus journey through the Norse wilds in a brutal, single-shot retelling of a father-son myth.' },
-  { name: 'Sekiro: Shadows Die Twice', genre: 'Action', platform: 'STEAM', region: 'GLOBAL', price: 39.99, developer: 'FromSoftware', publisher: 'Activision', releaseDate: '2019-03-22', keys: 15, description: 'A one-armed shinobi seeks revenge in Sengoku-era Japan. Posture-breaking swordplay that demands precision over patience.' },
-  { name: 'Hades', genre: 'Action', platform: 'STEAM', region: 'GLOBAL', price: 24.99, developer: 'Supergiant Games', publisher: 'Supergiant Games', releaseDate: '2020-09-17', keys: 32, description: 'Defy the god of the dead in a rogue-like dungeon crawler where every escape attempt deepens the story.' },
+  { name: 'Elden Ring', steamAppId: 1245620, genre: 'Action', platform: 'STEAM', region: 'GLOBAL', price: 59.99, developer: 'FromSoftware', publisher: 'Bandai Namco', releaseDate: '2022-02-25', keys: 24, description: 'A vast open world of grim beauty from FromSoftware and George R. R. Martin. Explore the Lands Between, master punishing combat, and become Elden Lord.' },
+  { name: 'God of War', steamAppId: 1593500, genre: 'Action', platform: 'STEAM', region: 'GLOBAL', price: 49.99, developer: 'Santa Monica Studio', publisher: 'PlayStation PC', releaseDate: '2022-01-14', keys: 18, description: 'Kratos and his son Atreus journey through the Norse wilds in a brutal, single-shot retelling of a father-son myth.' },
+  { name: 'Sekiro: Shadows Die Twice', steamAppId: 814380, genre: 'Action', platform: 'STEAM', region: 'GLOBAL', price: 39.99, developer: 'FromSoftware', publisher: 'Activision', releaseDate: '2019-03-22', keys: 15, description: 'A one-armed shinobi seeks revenge in Sengoku-era Japan. Posture-breaking swordplay that demands precision over patience.' },
+  { name: 'Hades', steamAppId: 1145360, genre: 'Action', platform: 'STEAM', region: 'GLOBAL', price: 24.99, developer: 'Supergiant Games', publisher: 'Supergiant Games', releaseDate: '2020-09-17', keys: 32, description: 'Defy the god of the dead in a rogue-like dungeon crawler where every escape attempt deepens the story.' },
 
-  { name: 'Baldurs Gate 3', genre: 'RPG', platform: 'STEAM', region: 'GLOBAL', price: 59.99, developer: 'Larian Studios', publisher: 'Larian Studios', releaseDate: '2023-08-03', keys: 21, description: 'A sprawling D&D adventure where nearly every choice reshapes the story. Turn-based combat with extraordinary freedom.' },
-  { name: 'The Witcher 3: Wild Hunt', genre: 'RPG', platform: 'GOG', region: 'GLOBAL', price: 39.99, developer: 'CD PROJEKT RED', publisher: 'CD PROJEKT', releaseDate: '2015-05-19', keys: 40, description: 'Play as Geralt of Rivia, monster hunter for hire, in an open world defined by consequence and superb side quests.' },
-  { name: 'Cyberpunk 2077', genre: 'RPG', platform: 'GOG', region: 'GLOBAL', price: 49.99, developer: 'CD PROJEKT RED', publisher: 'CD PROJEKT', releaseDate: '2020-12-10', keys: 27, description: 'Night City is an open-world megalopolis obsessed with power and body modification. Build a mercenary and carve out a legend.' },
-  { name: 'Divinity: Original Sin 2', genre: 'RPG', platform: 'STEAM', region: 'GLOBAL', price: 44.99, developer: 'Larian Studios', publisher: 'Larian Studios', releaseDate: '2017-09-14', keys: 12, description: 'A tactical RPG with elemental combat so systemic it rewards inventiveness over brute force.' },
-  { name: 'Persona 5 Royal', genre: 'RPG', platform: 'STEAM', region: 'GLOBAL', price: 59.99, developer: 'ATLUS', publisher: 'SEGA', releaseDate: '2022-10-21', keys: 9, description: 'Balance high-school life with heists of the heart in a stylish JRPG about rebellion and reinvention.' },
+  { name: 'Baldurs Gate 3', steamAppId: 1086940, genre: 'RPG', platform: 'STEAM', region: 'GLOBAL', price: 59.99, developer: 'Larian Studios', publisher: 'Larian Studios', releaseDate: '2023-08-03', keys: 21, description: 'A sprawling D&D adventure where nearly every choice reshapes the story. Turn-based combat with extraordinary freedom.' },
+  { name: 'The Witcher 3: Wild Hunt', steamAppId: 292030, genre: 'RPG', platform: 'GOG', region: 'GLOBAL', price: 39.99, developer: 'CD PROJEKT RED', publisher: 'CD PROJEKT', releaseDate: '2015-05-19', keys: 40, description: 'Play as Geralt of Rivia, monster hunter for hire, in an open world defined by consequence and superb side quests.' },
+  { name: 'Cyberpunk 2077', steamAppId: 1091500, genre: 'RPG', platform: 'GOG', region: 'GLOBAL', price: 49.99, developer: 'CD PROJEKT RED', publisher: 'CD PROJEKT', releaseDate: '2020-12-10', keys: 27, description: 'Night City is an open-world megalopolis obsessed with power and body modification. Build a mercenary and carve out a legend.' },
+  { name: 'Divinity: Original Sin 2', steamAppId: 435150, genre: 'RPG', platform: 'STEAM', region: 'GLOBAL', price: 44.99, developer: 'Larian Studios', publisher: 'Larian Studios', releaseDate: '2017-09-14', keys: 12, description: 'A tactical RPG with elemental combat so systemic it rewards inventiveness over brute force.' },
+  { name: 'Persona 5 Royal', steamAppId: 1687950, genre: 'RPG', platform: 'STEAM', region: 'GLOBAL', price: 59.99, developer: 'ATLUS', publisher: 'SEGA', releaseDate: '2022-10-21', keys: 9, description: 'Balance high-school life with heists of the heart in a stylish JRPG about rebellion and reinvention.' },
 
-  { name: 'Civilization VI', genre: 'Strategy', platform: 'STEAM', region: 'GLOBAL', price: 29.99, developer: 'Firaxis Games', publisher: '2K', releaseDate: '2016-10-21', keys: 30, description: 'Build an empire to stand the test of time. Just one more turn, every single time.' },
-  { name: 'Total War: WARHAMMER III', genre: 'Strategy', platform: 'STEAM', region: 'EU', price: 49.99, developer: 'Creative Assembly', publisher: 'SEGA', releaseDate: '2022-02-17', keys: 14, description: 'Grand campaign strategy married to enormous real-time battles across the Realm of Chaos.' },
-  { name: 'Age of Empires IV', genre: 'Strategy', platform: 'STEAM', region: 'GLOBAL', price: 39.99, developer: 'Relic Entertainment', publisher: 'Xbox Game Studios', releaseDate: '2021-10-28', keys: 17, description: 'The classic RTS returns with eight asymmetric civilisations and genuinely useful history lessons.' },
-  { name: 'Frostpunk', genre: 'Strategy', platform: 'STEAM', region: 'GLOBAL', price: 19.99, developer: '11 bit studios', publisher: '11 bit studios', releaseDate: '2018-04-24', keys: 26, description: 'Command the last city on a frozen earth and decide how much of your humanity survival is worth.' },
+  { name: 'Civilization VI', steamAppId: 289070, genre: 'Strategy', platform: 'STEAM', region: 'GLOBAL', price: 29.99, developer: 'Firaxis Games', publisher: '2K', releaseDate: '2016-10-21', keys: 30, description: 'Build an empire to stand the test of time. Just one more turn, every single time.' },
+  { name: 'Total War: WARHAMMER III', steamAppId: 1142710, genre: 'Strategy', platform: 'STEAM', region: 'EU', price: 49.99, developer: 'Creative Assembly', publisher: 'SEGA', releaseDate: '2022-02-17', keys: 14, description: 'Grand campaign strategy married to enormous real-time battles across the Realm of Chaos.' },
+  { name: 'Age of Empires IV', steamAppId: 1466860, genre: 'Strategy', platform: 'STEAM', region: 'GLOBAL', price: 39.99, developer: 'Relic Entertainment', publisher: 'Xbox Game Studios', releaseDate: '2021-10-28', keys: 17, description: 'The classic RTS returns with eight asymmetric civilisations and genuinely useful history lessons.' },
+  { name: 'Frostpunk', steamAppId: 323190, genre: 'Strategy', platform: 'STEAM', region: 'GLOBAL', price: 19.99, developer: '11 bit studios', publisher: '11 bit studios', releaseDate: '2018-04-24', keys: 26, description: 'Command the last city on a frozen earth and decide how much of your humanity survival is worth.' },
 
-  { name: 'Microsoft Flight Simulator', genre: 'Simulation', platform: 'XBOX', region: 'GLOBAL', price: 59.99, developer: 'Asobo Studio', publisher: 'Xbox Game Studios', releaseDate: '2020-08-18', keys: 8, description: 'The whole planet, rendered to scale, with weather pulled from the real world. Fly anywhere.' },
-  { name: 'Cities: Skylines II', genre: 'Simulation', platform: 'STEAM', region: 'GLOBAL', price: 49.99, developer: 'Colossal Order', publisher: 'Paradox Interactive', releaseDate: '2023-10-24', keys: 11, description: 'City building at genuine scale, with deep traffic, economy, and zoning simulation.' },
-  { name: 'Stardew Valley', genre: 'Simulation', platform: 'STEAM', region: 'GLOBAL', price: 14.99, developer: 'ConcernedApe', publisher: 'ConcernedApe', releaseDate: '2016-02-26', keys: 45, description: 'Inherit a run-down farm and quietly build a life. Endlessly generous, made almost entirely by one person.' },
-  { name: 'The Sims 4', genre: 'Simulation', platform: 'EPIC', region: 'GLOBAL', price: 39.99, developer: 'Maxis', publisher: 'Electronic Arts', releaseDate: '2014-09-02', keys: 22, description: 'Create people, build homes, and orchestrate their lives with as much or as little kindness as you like.' },
+  { name: 'Microsoft Flight Simulator', steamAppId: 1250410, genre: 'Simulation', platform: 'XBOX', region: 'GLOBAL', price: 59.99, developer: 'Asobo Studio', publisher: 'Xbox Game Studios', releaseDate: '2020-08-18', keys: 8, description: 'The whole planet, rendered to scale, with weather pulled from the real world. Fly anywhere.' },
+  { name: 'Cities: Skylines II', steamAppId: 949230, genre: 'Simulation', platform: 'STEAM', region: 'GLOBAL', price: 49.99, developer: 'Colossal Order', publisher: 'Paradox Interactive', releaseDate: '2023-10-24', keys: 11, description: 'City building at genuine scale, with deep traffic, economy, and zoning simulation.' },
+  { name: 'Stardew Valley', steamAppId: 413150, genre: 'Simulation', platform: 'STEAM', region: 'GLOBAL', price: 14.99, developer: 'ConcernedApe', publisher: 'ConcernedApe', releaseDate: '2016-02-26', keys: 45, description: 'Inherit a run-down farm and quietly build a life. Endlessly generous, made almost entirely by one person.' },
+  { name: 'The Sims 4', steamAppId: 1222670, genre: 'Simulation', platform: 'EPIC', region: 'GLOBAL', price: 39.99, developer: 'Maxis', publisher: 'Electronic Arts', releaseDate: '2014-09-02', keys: 22, description: 'Create people, build homes, and orchestrate their lives with as much or as little kindness as you like.' },
 
-  { name: 'Hollow Knight', genre: 'Indie', platform: 'STEAM', region: 'GLOBAL', price: 14.99, developer: 'Team Cherry', publisher: 'Team Cherry', releaseDate: '2017-02-24', keys: 38, description: 'A hand-drawn metroidvania through the ruined kingdom of Hallownest. Melancholy, enormous, and precise.' },
-  { name: 'Celeste', genre: 'Indie', platform: 'STEAM', region: 'GLOBAL', price: 19.99, developer: 'Maddy Makes Games', publisher: 'Maddy Makes Games', releaseDate: '2018-01-25', keys: 29, description: 'Climb a mountain, one impeccably tuned jump at a time, in a platformer about anxiety and persistence.' },
-  { name: 'Disco Elysium', genre: 'Indie', platform: 'GOG', region: 'GLOBAL', price: 39.99, developer: 'ZA/UM', publisher: 'ZA/UM', releaseDate: '2019-10-15', keys: 0, description: 'A detective RPG with no combat and extraordinary writing. Argue with the parts of your own mind.' },
-  { name: 'Outer Wilds', genre: 'Indie', platform: 'EPIC', region: 'GLOBAL', price: 24.99, developer: 'Mobius Digital', publisher: 'Annapurna Interactive', releaseDate: '2019-05-28', keys: 16, description: 'Explore a hand-built solar system stuck in a 22-minute time loop. Knowledge is the only progression.' },
+  { name: 'Hollow Knight', steamAppId: 367520, genre: 'Indie', platform: 'STEAM', region: 'GLOBAL', price: 14.99, developer: 'Team Cherry', publisher: 'Team Cherry', releaseDate: '2017-02-24', keys: 38, description: 'A hand-drawn metroidvania through the ruined kingdom of Hallownest. Melancholy, enormous, and precise.' },
+  { name: 'Celeste', steamAppId: 504230, genre: 'Indie', platform: 'STEAM', region: 'GLOBAL', price: 19.99, developer: 'Maddy Makes Games', publisher: 'Maddy Makes Games', releaseDate: '2018-01-25', keys: 29, description: 'Climb a mountain, one impeccably tuned jump at a time, in a platformer about anxiety and persistence.' },
+  { name: 'Disco Elysium', steamAppId: 632470, genre: 'Indie', platform: 'GOG', region: 'GLOBAL', price: 39.99, developer: 'ZA/UM', publisher: 'ZA/UM', releaseDate: '2019-10-15', keys: 0, description: 'A detective RPG with no combat and extraordinary writing. Argue with the parts of your own mind.' },
+  { name: 'Outer Wilds', steamAppId: 753640, genre: 'Indie', platform: 'EPIC', region: 'GLOBAL', price: 24.99, developer: 'Mobius Digital', publisher: 'Annapurna Interactive', releaseDate: '2019-05-28', keys: 16, description: 'Explore a hand-built solar system stuck in a 22-minute time loop. Knowledge is the only progression.' },
 
-  { name: 'DOOM Eternal', genre: 'Shooter', platform: 'STEAM', region: 'GLOBAL', price: 39.99, developer: 'id Software', publisher: 'Bethesda Softworks', releaseDate: '2020-03-20', keys: 23, description: 'Aggressive, resource-juggling combat set to a heavy soundtrack. Movement is the defence.' },
-  { name: 'Counter-Strike 2', genre: 'Shooter', platform: 'STEAM', region: 'GLOBAL', price: 14.99, developer: 'Valve', publisher: 'Valve', releaseDate: '2023-09-27', keys: 50, description: 'The definitive competitive shooter, rebuilt on Source 2 with volumetric smoke and sub-tick updates.' },
-  { name: 'Titanfall 2', genre: 'Shooter', platform: 'EPIC', region: 'NA', price: 29.99, developer: 'Respawn Entertainment', publisher: 'Electronic Arts', releaseDate: '2016-10-28', keys: 13, description: 'Wall-running pilots and towering mechs, plus one of the most inventive campaigns in the genre.' },
+  { name: 'DOOM Eternal', steamAppId: 782330, genre: 'Shooter', platform: 'STEAM', region: 'GLOBAL', price: 39.99, developer: 'id Software', publisher: 'Bethesda Softworks', releaseDate: '2020-03-20', keys: 23, description: 'Aggressive, resource-juggling combat set to a heavy soundtrack. Movement is the defence.' },
+  { name: 'Counter-Strike 2', steamAppId: 730, genre: 'Shooter', platform: 'STEAM', region: 'GLOBAL', price: 14.99, developer: 'Valve', publisher: 'Valve', releaseDate: '2023-09-27', keys: 50, description: 'The definitive competitive shooter, rebuilt on Source 2 with volumetric smoke and sub-tick updates.' },
+  { name: 'Titanfall 2', steamAppId: 1237970, genre: 'Shooter', platform: 'EPIC', region: 'NA', price: 29.99, developer: 'Respawn Entertainment', publisher: 'Electronic Arts', releaseDate: '2016-10-28', keys: 13, description: 'Wall-running pilots and towering mechs, plus one of the most inventive campaigns in the genre.' },
 
-  { name: 'Resident Evil 4', genre: 'Horror', platform: 'STEAM', region: 'GLOBAL', price: 59.99, developer: 'CAPCOM', publisher: 'CAPCOM', releaseDate: '2023-03-24', keys: 19, description: 'The 2005 landmark remade with modern controls, sharper tension, and a far darker village.' },
-  { name: 'Phasmophobia', genre: 'Horror', platform: 'STEAM', region: 'GLOBAL', price: 19.99, developer: 'Kinetic Games', publisher: 'Kinetic Games', releaseDate: '2020-09-18', keys: 34, description: 'Co-op ghost hunting with voice recognition. The ghost can hear you say its name.' },
-  { name: 'Dead Space', genre: 'Horror', platform: 'PLAYSTATION', region: 'EU', price: 59.99, developer: 'Motive Studio', publisher: 'Electronic Arts', releaseDate: '2023-01-27', keys: 0, description: 'Strategic dismemberment aboard the USG Ishimura, rebuilt with seamless audio and no loading screens.' },
+  { name: 'Resident Evil 4', steamAppId: 2050650, genre: 'Horror', platform: 'STEAM', region: 'GLOBAL', price: 59.99, developer: 'CAPCOM', publisher: 'CAPCOM', releaseDate: '2023-03-24', keys: 19, description: 'The 2005 landmark remade with modern controls, sharper tension, and a far darker village.' },
+  { name: 'Phasmophobia', steamAppId: 739630, genre: 'Horror', platform: 'STEAM', region: 'GLOBAL', price: 19.99, developer: 'Kinetic Games', publisher: 'Kinetic Games', releaseDate: '2020-09-18', keys: 34, description: 'Co-op ghost hunting with voice recognition. The ghost can hear you say its name.' },
+  { name: 'Dead Space', steamAppId: 1693980, genre: 'Horror', platform: 'PLAYSTATION', region: 'EU', price: 59.99, developer: 'Motive Studio', publisher: 'Electronic Arts', releaseDate: '2023-01-27', keys: 0, description: 'Strategic dismemberment aboard the USG Ishimura, rebuilt with seamless audio and no loading screens.' },
 
-  { name: 'Forza Horizon 5', genre: 'Sports & Racing', platform: 'XBOX', region: 'GLOBAL', price: 59.99, developer: 'Playground Games', publisher: 'Xbox Game Studios', releaseDate: '2021-11-09', keys: 20, description: 'An open-world racing festival across Mexico, with hundreds of cars and permanently gorgeous weather.' },
-  { name: 'EA SPORTS FC 24', genre: 'Sports & Racing', platform: 'EPIC', region: 'UK', price: 69.99, developer: 'EA Vancouver', publisher: 'EA SPORTS', releaseDate: '2023-09-29', keys: 7, description: 'Football with HyperMotionV animation, over 19,000 licensed players, and Ultimate Team.' }
+  { name: 'Forza Horizon 5', steamAppId: 1551360, genre: 'Sports & Racing', platform: 'XBOX', region: 'GLOBAL', price: 59.99, developer: 'Playground Games', publisher: 'Xbox Game Studios', releaseDate: '2021-11-09', keys: 20, description: 'An open-world racing festival across Mexico, with hundreds of cars and permanently gorgeous weather.' },
+  { name: 'EA SPORTS FC 24', steamAppId: 2195250, genre: 'Sports & Racing', platform: 'EPIC', region: 'UK', price: 69.99, developer: 'EA Vancouver', publisher: 'EA SPORTS', releaseDate: '2023-09-29', keys: 7, description: 'Football with HyperMotionV animation, over 19,000 licensed players, and Ultimate Team.' }
 ];
 
 const REVIEW_COMMENTS = [
@@ -214,14 +205,14 @@ async function main() {
     console.log('   To reseed from scratch: npm run db:reset');
   } else {
     let totalKeys = 0;
-    for (const [index, game] of GAMES.entries()) {
+    for (const game of GAMES) {
       const product = await prisma.product.create({
         data: {
           name: game.name,
           slug: slugify(game.name),
           description: game.description,
           price: game.price,
-          images: img(ART[index % ART.length]),
+          images: steamArt(game.steamAppId),
           categoryId: genreByName[game.genre].id,
           platform: game.platform,
           region: game.region,
