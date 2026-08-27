@@ -173,23 +173,15 @@ export default function Cart() {
                 
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between text-neutral-600">
-                    <span>Subtotal ({getItemCount()} items)</span>
+                    <span>Subtotal ({getItemCount()} {getItemCount() === 1 ? 'key' : 'keys'})</span>
                     <span>${getTotal().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-neutral-600">
-                    <span>Shipping</span>
-                    <span className="text-success-600">Free</span>
-                  </div>
-                  <div className="flex justify-between text-neutral-600">
-                    <span>Tax</span>
-                    <span>${(getTotal() * 0.08).toFixed(2)}</span>
                   </div>
                   <div className="border-t border-neutral-200 pt-4">
                     <div className="flex justify-between text-lg font-bold text-neutral-900">
                       <span>Total</span>
-                      <span>${(getTotal() * 1.08).toFixed(2)}</span>
+                      <span>${getTotal().toFixed(2)}</span>
                     </div>
-                    <p className="text-sm text-neutral-500 mt-1">Including tax</p>
+                    <p className="text-sm text-neutral-500 mt-1">Digital delivery, no shipping</p>
                   </div>
                 </div>
 

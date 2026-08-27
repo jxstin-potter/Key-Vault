@@ -1,16 +1,8 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import prisma from '../lib/prisma.js';
-import {
-  reserveKeys,
-  fulfillKeys,
-  withKeyRetry,
-  OutOfKeysError
-} from '../lib/keys.js';
 
 const router = express.Router();
-
-const AVAILABLE_KEYS = { select: { gameKeys: { where: { status: 'AVAILABLE' } } } };
 
 // Get user's orders (or all orders for admin)
 router.get('/', async (req, res) => {
@@ -143,135 +135,10 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create order from cart
-router.post('/create', [
-  // Digital keys need no shipping address. Still accepted for backward
-  // compatibility with the pre-pivot checkout, but no longer required.
-  body('shippingAddress').optional().isObject()
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { shippingAddress, paymentIntent } = req.body;
-
-    // Get user's cart
-    const cartItems = await prisma.cartItem.findMany({
-      where: { userId: req.user.id },
-      include: {
-        product: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-            isActive: true,
-            _count: AVAILABLE_KEYS
-          }
-        }
-      }
-    });
-
-    if (cartItems.length === 0) {
-      return res.status(400).json({ message: 'Cart is empty' });
-    }
-
-    // Validate cart items
-    const validItems = cartItems.filter(item => item.product.isActive);
-    if (validItems.length === 0) {
-      return res.status(400).json({ message: 'No valid items in cart' });
-    }
-
-    // Check stock and calculate total
-    let total = 0;
-    const orderItems = [];
-
-    for (const item of validItems) {
-      if (item.product._count.gameKeys < item.quantity) {
-        return res.status(400).json({
-          message: `Insufficient stock for ${item.product.name}`
-        });
-      }
-      total += item.product.price * item.quantity;
-      orderItems.push({
-        productId: item.product.id,
-        quantity: item.quantity,
-        price: item.product.price
-      });
-    }
-
-    // Create order in transaction. Keys are claimed atomically here, which
-    // replaces the old read-modify-write stock decrement (that could oversell
-    // under concurrency). No payment step exists yet, so keys are reserved and
-    // immediately fulfilled; Phase 3 splits these across the Stripe webhook.
-    const order = await withKeyRetry(() => prisma.$transaction(async (tx) => {
-      const newOrder = await tx.order.create({
-        data: {
-          userId: req.user.id,
-          total,
-          shippingAddress: shippingAddress ?? null,
-          paymentIntent,
-          status: 'COMPLETED',
-          paidAt: new Date()
-        }
-      });
-
-      // Create items one at a time: reserveKeys needs each item's id
-      for (const item of validItems) {
-        const orderItem = await tx.orderItem.create({
-          data: {
-            orderId: newOrder.id,
-            productId: item.product.id,
-            quantity: item.quantity,
-            price: item.product.price
-          }
-        });
-
-        await reserveKeys(tx, {
-          productId: item.product.id,
-          orderItemId: orderItem.id,
-          quantity: item.quantity,
-          until: new Date(Date.now() + 5 * 60 * 1000)
-        });
-      }
-
-      await fulfillKeys(tx, newOrder.id);
-
-      // Clear cart
-      await tx.cartItem.deleteMany({
-        where: { userId: req.user.id }
-      });
-
-      return await tx.order.findUnique({
-        where: { id: newOrder.id },
-        include: {
-          orderItems: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  images: true
-                }
-              }
-            }
-          }
-        }
-      });
-    }));
-
-    res.status(201).json({
-      message: 'Order created successfully',
-      order
-    });
-  } catch (error) {
-    if (error instanceof OutOfKeysError) {
-      return res.status(409).json({ message: 'Not enough keys available for one of your items' });
-    }
-    res.status(500).json({ message: 'Failed to create order' });
-  }
-});
+// NOTE: POST /create used to build an order straight from the cart with no
+// payment at all - anyone with a valid token received free keys. Checkout
+// now runs through Stripe: routes/checkout.js opens the session and
+// routes/webhooks.js fulfils the order once payment clears.
 
 // Update order status (admin only)
 router.put('/:id/status', [

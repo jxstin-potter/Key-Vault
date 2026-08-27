@@ -23,6 +23,8 @@ import { useEffect } from 'react';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
+import CheckoutSuccess from './pages/CheckoutSuccess';
+import MyKeys from './pages/MyKeys';
 import Orders from './pages/Orders';
 import Profile from './pages/Profile';
 
@@ -56,6 +58,12 @@ export default function AppRoutes() {
               <Checkout />
             </AuthGuard>
           } />
+          <Route path="/checkout/success" element={
+            <AuthGuard>
+              <CheckoutSuccess />
+            </AuthGuard>
+          } />
+          <Route path="/keys" element={<MyKeys />} />
           <Route path="/orders" element={
             <AuthGuard>
               <Orders />

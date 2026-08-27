@@ -8,7 +8,8 @@ import {
   X, 
   LogOut,
   Settings,
-  Package
+  Package,
+  KeyRound
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useCartStore } from '../../stores/cartStore';
@@ -177,6 +178,13 @@ export default function Header() {
                       <span>Profile</span>
                     </Link>
                     
+                    <Link
+                      to="/keys"
+                      className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                    >
+                      <KeyRound size={16} />
+                      My Keys
+                    </Link>
                     <Link
                       to="/orders"
                       className="flex items-center space-x-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"

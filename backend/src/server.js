@@ -15,6 +15,8 @@ import reviewRoutes from './routes/reviews.js';
 import userRoutes from './routes/users.js';
 import analyticsRoutes from './routes/analytics.js';
 import keyRoutes from './routes/keys.js';
+import checkoutRoutes from './routes/checkout.js';
+import webhookRoutes from './routes/webhooks.js';
 
 // Import middleware
 import { authenticateToken } from './middleware/auth.js';
@@ -48,6 +50,11 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
+// Stripe webhooks need the unparsed body for signature verification, so this
+// route is mounted before express.json(). It is also above the rate limiter so
+// Stripe retries are never throttled. Do not reorder these three lines.
+app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }), webhookRoutes);
+
 app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -177,6 +184,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/users', authenticateToken, userRoutes);
 app.use('/api/analytics', authenticateToken, analyticsRoutes);
 app.use('/api/keys', authenticateToken, keyRoutes);
+app.use('/api/checkout', authenticateToken, checkoutRoutes);
 
 // Error handling
 app.use(notFoundHandler);
