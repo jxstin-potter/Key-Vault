@@ -102,8 +102,8 @@ export default function Home() {
     if (topRef.current) topRef.current.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleAddToCart = async (product) => {
-    if (!product.inStock) return;
+  const handleAddToCart = async (e, product) => {
+    if (product.stock === 0) return;
     await addToCart(product.id, 1);
   };
 
@@ -192,28 +192,9 @@ export default function Home() {
 
 
 
-  // Transform API products to match carousel format
-  const transformProductForCarousel = (product) => ({
-    ...product,
-    id: product.id,
-    name: product.name,
-    price: parseFloat(product.price),
-    image: product.images?.[0] || '',
-    category: product.category?.name || product.category || 'Uncategorized',
-    rating: product.averageRating || 0,
-    reviews: product.reviewCount || 0,
-    inStock: product.stock > 0,
-    description: product.description,
-    // Ensure all required fields are present
-    averageRating: product.averageRating || 0,
-    reviewCount: product.reviewCount || 0,
-    stock: product.stock || 0,
-    createdAt: product.createdAt || new Date().toISOString()
-  });
-
-  const bestSellers = categorizedProducts.bestSellers.map(transformProductForCarousel);
-  const newReleases = categorizedProducts.newReleases.map(transformProductForCarousel);
-  const bestSales = categorizedProducts.bestSales.map(transformProductForCarousel);
+  // GameCard and ProductCarousel consume the raw API product shape directly,
+  // so the categorized lists need no reshaping before being handed down.
+  const { bestSellers, newReleases, bestSales } = categorizedProducts;
 
   return (
     <>
