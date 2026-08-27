@@ -83,6 +83,28 @@ export const productApi = {
     }
   },
 
+  // Create product (admin only)
+  createProduct: async (data) => {
+    try {
+      const response = await api.post('/products', data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create product:', error);
+      throw error;
+    }
+  },
+
+  // Update product (admin only)
+  updateProduct: async (productId, data) => {
+    try {
+      const response = await api.put(`/products/${productId}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update product:', error);
+      throw error;
+    }
+  },
+
   // Delete single product (admin only)
   deleteProduct: async (productId) => {
     try {

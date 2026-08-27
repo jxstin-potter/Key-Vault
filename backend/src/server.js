@@ -14,6 +14,7 @@ import cartRoutes from './routes/cart.js';
 import reviewRoutes from './routes/reviews.js';
 import userRoutes from './routes/users.js';
 import analyticsRoutes from './routes/analytics.js';
+import keyRoutes from './routes/keys.js';
 
 // Import middleware
 import { authenticateToken } from './middleware/auth.js';
@@ -175,6 +176,7 @@ app.use('/api/cart', authenticateToken, cartRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/users', authenticateToken, userRoutes);
 app.use('/api/analytics', authenticateToken, analyticsRoutes);
+app.use('/api/keys', authenticateToken, keyRoutes);
 
 // Error handling
 app.use(notFoundHandler);

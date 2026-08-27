@@ -5,18 +5,17 @@ import {
   Filter, 
   Edit, 
   Trash2, 
-  Eye, 
-  MoreHorizontal,
+  KeyRound,
   Package,
-  ArrowUpDown,
   CheckCircle,
   XCircle,
-  Upload,
-  X,
   Loader2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { productApi } from '../lib/productApi';
+import { keyApi } from '../lib/keyApi';
+import ProductFormModal from '../components/admin/ProductFormModal';
+import KeyUploadModal from '../components/admin/KeyUploadModal';
 import toast from 'react-hot-toast';
 
 // Convert API product data to admin format
@@ -32,7 +31,8 @@ const convertToAdminFormat = (products) => {
     description: product.description,
     createdAt: new Date(product.createdAt).toISOString().split('T')[0],
     averageRating: product.averageRating || 0,
-    reviewCount: product.reviewCount || 0
+    reviewCount: product.reviewCount || 0,
+    raw: product
   }));
 };
 
@@ -45,36 +45,32 @@ export default function AdminProducts() {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [sortBy, setSortBy] = useState('name');
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [keyModalProduct, setKeyModalProduct] = useState(null);
+  const [inventory, setInventory] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [newProduct, setNewProduct] = useState({
-    name: '',
-    price: '',
-    stock: '',
-    category: '',
-    description: '',
-    image: '',
-    status: 'active'
-  });
+  const [refreshToken, setRefreshToken] = useState(0);
+  const refresh = () => setRefreshToken((n) => n + 1);
 
   // Fetch products and categories on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [productsData, categoriesData] = await Promise.all([
+        const [productsData, categoriesData, inventoryData] = await Promise.all([
           productApi.getAllProducts(1, 200),
-          productApi.getCategories()
+          productApi.getCategories(),
+          keyApi.getInventory().catch(() => ({ inventory: {} }))
         ]);
-        
+
         const adminProducts = convertToAdminFormat(Array.isArray(productsData) ? productsData : productsData.products || []);
         setProducts(adminProducts);
         const categoryArray = Array.isArray(categoriesData)
           ? categoriesData
           : categoriesData.categories;
         setCategories(categoryArray);
+        setInventory(inventoryData.inventory || {});
       } catch (error) {
         console.error('Failed to fetch data:', error);
         toast.error('Failed to load products');
@@ -84,7 +80,7 @@ export default function AdminProducts() {
     };
 
     fetchData();
-  }, []);
+  }, [refreshToken]);
 
   // Filter and sort products
   useEffect(() => {
@@ -131,17 +127,13 @@ export default function AdminProducts() {
   };
 
   const handleEditProduct = (product) => {
-    setEditingProduct(product);
-    setNewProduct({
-      name: product.name,
-      price: product.price.toString(),
-      stock: product.stock.toString(),
-      category: product.category,
-      description: product.description,
-      image: product.image,
-      status: product.status
-    });
-    setIsEditModalOpen(true);
+    setEditingProduct(product.raw);
+    setIsFormOpen(true);
+  };
+
+  const handleAddProduct = () => {
+    setEditingProduct(null);
+    setIsFormOpen(true);
   };
 
   const handleDeleteProduct = async (productId) => {
@@ -196,7 +188,7 @@ export default function AdminProducts() {
           <p className="text-neutral-600">Manage your product catalog</p>
             </div>
             <button
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={handleAddProduct}
           className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
             >
               <Plus size={16} />
@@ -348,7 +340,19 @@ export default function AdminProducts() {
                     </td>
                   <td className="px-6 py-4 text-sm text-neutral-900">{product.category}</td>
                   <td className="px-6 py-4 text-sm text-neutral-900">${product.price}</td>
-                  <td className="px-6 py-4 text-sm text-neutral-900">{product.stock}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <span className={cn(
+                      "font-medium",
+                      product.stock === 0 ? "text-error-600" : "text-neutral-900"
+                    )}>
+                      {product.stock === 0 ? "Out of stock" : product.stock + " keys"}
+                    </span>
+                    {inventory[product.id]?.sold > 0 && (
+                      <span className="block text-xs text-neutral-500">
+                        {inventory[product.id].sold} sold
+                      </span>
+                    )}
+                  </td>
                     <td className="px-6 py-4">
                     <span className={cn(
                       "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
@@ -383,8 +387,16 @@ export default function AdminProducts() {
                     <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                         <button
+                          onClick={() => setKeyModalProduct(product)}
+                        className="p-1 text-neutral-400 hover:text-primary-600 transition-colors"
+                        title="Manage keys"
+                        >
+                          <KeyRound size={16} />
+                        </button>
+                        <button
                           onClick={() => handleEditProduct(product)}
                         className="p-1 text-neutral-400 hover:text-primary-600 transition-colors"
+                        title="Edit game"
                         >
                           <Edit size={16} />
                         </button>
@@ -414,8 +426,23 @@ export default function AdminProducts() {
 
       {/* Results count */}
       <div className="text-sm text-neutral-600">
-        Showing {filteredProducts.length} of {products.length} products
+        Showing {filteredProducts.length} of {products.length} games
       </div>
+
+      <ProductFormModal
+        open={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSaved={refresh}
+        product={editingProduct}
+        categories={categories}
+      />
+
+      <KeyUploadModal
+        open={Boolean(keyModalProduct)}
+        onClose={() => setKeyModalProduct(null)}
+        onChanged={refresh}
+        product={keyModalProduct}
+      />
     </div>
   );
 } 
