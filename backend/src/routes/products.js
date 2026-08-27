@@ -271,32 +271,6 @@ router.put('/:id', authenticateToken, requireAdmin, [
   }
 });
 
-// Delete product (admin only)
-router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Check if product exists
-    const product = await prisma.product.findUnique({
-      where: { id }
-    });
-
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    // Soft delete by setting isActive to false
-    await prisma.product.update({
-      where: { id },
-      data: { isActive: false }
-    });
-
-    res.json({ message: 'Product deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to delete product' });
-  }
-});
-
 // Bulk delete products (admin only)
 router.delete('/bulk', authenticateToken, requireAdmin, [
   body('productIds').isArray({ min: 1 }).withMessage('At least one product ID is required')
@@ -330,6 +304,32 @@ router.delete('/bulk', authenticateToken, requireAdmin, [
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete products' });
+  }
+});
+
+// Delete product (admin only)
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if product exists
+    const product = await prisma.product.findUnique({
+      where: { id }
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Soft delete by setting isActive to false
+    await prisma.product.update({
+      where: { id },
+      data: { isActive: false }
+    });
+
+    res.json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete product' });
   }
 });
 

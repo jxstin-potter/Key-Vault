@@ -65,7 +65,7 @@ export default function AdminProducts() {
       try {
         setIsLoading(true);
         const [productsData, categoriesData] = await Promise.all([
-          productApi.getAllProducts(),
+          productApi.getAllProducts(1, 200),
           productApi.getCategories()
         ]);
         

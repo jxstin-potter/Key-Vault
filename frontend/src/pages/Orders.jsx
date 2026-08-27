@@ -45,6 +45,9 @@ const orderStatusConfig = {
   }
 };
 
+// Linear fulfilment progression. CANCELLED is terminal and sits outside it.
+const STATUS_PROGRESSION = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -238,9 +241,11 @@ export default function Orders() {
                       {Object.entries(orderStatusConfig).map(([status, config]) => {
                         const Icon = config.icon;
                         const isActive = selectedOrder.status === status;
-                        const isCompleted = ['DELIVERED', 'CANCELLED'].includes(selectedOrder.status) || 
-                                          ['PENDING', 'PROCESSING', 'SHIPPED'].indexOf(selectedOrder.status) >= 
-                                          ['PENDING', 'PROCESSING', 'SHIPPED'].indexOf(status);
+                        const orderIdx = STATUS_PROGRESSION.indexOf(selectedOrder.status);
+                        const rowIdx = STATUS_PROGRESSION.indexOf(status);
+                        const isCompleted = selectedOrder.status === 'CANCELLED'
+                          ? status === 'CANCELLED'
+                          : rowIdx !== -1 && orderIdx !== -1 && rowIdx <= orderIdx;
                         
                         return (
                           <div key={status} className="flex items-center gap-3">

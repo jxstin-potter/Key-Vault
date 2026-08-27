@@ -43,42 +43,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single order
-router.get('/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const order = await prisma.order.findFirst({
-      where: {
-        id,
-        userId: req.user.id
-      },
-      include: {
-        orderItems: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                images: true,
-                description: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
-    }
-
-    res.json({ order });
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch order' });
-  }
-});
-
 // Get order statistics (admin only)
 router.get('/stats', async (req, res) => {
   try {
@@ -131,6 +95,44 @@ router.get('/info', (req, res) => {
   res.json({
     message: 'GET /api/orders returns user orders (requires auth). Use POST, PUT, DELETE for order actions.'
   });
+});
+
+// Get single order
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isAdmin = req.user.role === 'ADMIN';
+
+    const order = await prisma.order.findFirst({
+      where: {
+        id,
+        // Admins can view any order; users only their own
+        ...(isAdmin ? {} : { userId: req.user.id })
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                images: true,
+                description: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    res.json({ order });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch order' });
+  }
 });
 
 // Create order from cart

@@ -75,8 +75,8 @@ export default function AdminOrders() {
     let filtered = orders.filter(order => {
       const matchesSearch = 
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `${order.customer.firstName} ${order.customer.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+        `${order.user.firstName} ${order.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = selectedStatus === 'All' || order.status === selectedStatus;
       return matchesSearch && matchesStatus;
     });
@@ -87,7 +87,7 @@ export default function AdminOrders() {
         case 'total':
           return b.total - a.total;
         case 'customer':
-          return `${a.customer.firstName} ${a.customer.lastName}`.localeCompare(`${b.customer.firstName} ${b.customer.lastName}`);
+          return `${a.user.firstName} ${a.user.lastName}`.localeCompare(`${b.user.firstName} ${b.user.lastName}`);
         case 'createdAt':
           return new Date(b.createdAt) - new Date(a.createdAt);
         default:
@@ -289,9 +289,9 @@ export default function AdminOrders() {
                   <td className="px-6 py-4">
                     <div>
                       <div className="font-medium text-neutral-900">
-                        {order.customer.firstName} {order.customer.lastName}
+                        {order.user.firstName} {order.user.lastName}
                       </div>
-                      <div className="text-sm text-neutral-600">{order.customer.email}</div>
+                      <div className="text-sm text-neutral-600">{order.user.email}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
