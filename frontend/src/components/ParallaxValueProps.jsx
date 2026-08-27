@@ -1,45 +1,45 @@
-import { Truck, RefreshCcw, Headphones, ShieldCheck, Heart, Gift, Leaf, Star } from 'lucide-react';
+import { Zap, ShieldCheck, Globe, Lock, Tag, Headphones, Gamepad2, Star } from 'lucide-react';
 
 const valueProps = [
   {
-    icon: Truck,
-    title: 'Free Shipping',
-    desc: 'On all orders over $50, fast and reliable.'
+    icon: Zap,
+    title: 'Instant Delivery',
+    desc: 'Your key appears the moment payment clears.'
   },
   {
-    icon: RefreshCcw,
-    title: 'Easy Returns',
-    desc: '30-day hassle-free returns on every order.'
+    icon: ShieldCheck,
+    title: 'Genuine Keys',
+    desc: 'Every code is sourced legitimately and activation-checked.'
+  },
+  {
+    icon: Gamepad2,
+    title: 'Every Major Platform',
+    desc: 'Steam, Epic, GOG, Xbox, PlayStation and more.'
+  },
+  {
+    icon: Lock,
+    title: 'Secure Checkout',
+    desc: 'Payments handled end to end by Stripe.'
+  },
+  {
+    icon: Globe,
+    title: 'Region Shown Up Front',
+    desc: 'No surprises - the region is on every listing.'
+  },
+  {
+    icon: Tag,
+    title: 'Competitive Prices',
+    desc: 'Deals across the catalogue, all year round.'
   },
   {
     icon: Headphones,
     title: '24/7 Support',
-    desc: 'Our team is here for you anytime, anywhere.'
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Secure Checkout',
-    desc: 'Your payment and data are always protected.'
-  },
-  {
-    icon: Heart,
-    title: 'Wishlist',
-    desc: 'Save your favorites and shop later.'
-  },
-  {
-    icon: Gift,
-    title: 'Gift Cards',
-    desc: 'Perfect for any occasion, delivered instantly.'
-  },
-  {
-    icon: Leaf,
-    title: 'Eco Packaging',
-    desc: 'Sustainable, planet-friendly materials.'
+    desc: 'Trouble redeeming? We are here any time.'
   },
   {
     icon: Star,
-    title: 'Top Rated',
-    desc: 'Loved by thousands of happy customers.'
+    title: 'Verified Reviews',
+    desc: 'Ratings from players who actually bought the game.'
   }
 ];
 
@@ -49,12 +49,12 @@ export default function ParallaxValueProps() {
       className="relative w-full py-20 bg-fixed bg-center bg-cover"
       style={{
         backgroundImage:
-          'linear-gradient(rgba(255,255,255,0.92),rgba(255,255,255,0.92)), url(https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=1200&q=80)'
+          'linear-gradient(rgba(255,255,255,0.92),rgba(255,255,255,0.92)), url(https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=1200&q=80)'
       }}
     >
       <div className="max-w-6xl mx-auto px-4">
         <h2 className="text-3xl font-light text-neutral-900 mb-12 text-center tracking-tight">
-          Why Shop With Us?
+          Why KeyVault?
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           {valueProps.map(({ icon, title, desc }) => {
@@ -74,4 +74,4 @@ export default function ParallaxValueProps() {
       </div>
     </section>
   );
-} 
+}

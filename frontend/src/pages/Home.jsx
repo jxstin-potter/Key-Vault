@@ -1,7 +1,7 @@
 import ProductCarousel from '../components/ProductCarousel';
 import ParallaxValueProps from '../components/ParallaxValueProps';
 import Footer from '../components/layout/Footer';
-import { TrendingUp, Sparkles, Zap, ArrowRight, Star, Shield, Truck, Clock, Loader2 } from 'lucide-react';
+import { TrendingUp, Sparkles, Zap, ArrowRight, Shield, Clock } from 'lucide-react';
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { productApi } from '../lib/productApi';
 import { Link } from 'react-router-dom';
@@ -215,17 +215,6 @@ export default function Home() {
   const newReleases = categorizedProducts.newReleases.map(transformProductForCarousel);
   const bestSales = categorizedProducts.bestSales.map(transformProductForCarousel);
 
-  // Debug: Log product counts and check for duplicates
-  console.log('🏠 Home: Product categorization:', {
-    totalProducts: products.length,
-    bestSellers: bestSellers.length,
-    newReleases: newReleases.length,
-    bestSales: bestSales.length,
-    bestSellersIds: bestSellers.map(p => p.id),
-    newReleasesIds: newReleases.map(p => p.id),
-    bestSalesIds: bestSales.map(p => p.id)
-  });
-
   return (
     <>
       <div ref={topRef} />
@@ -241,32 +230,32 @@ export default function Home() {
           <div className="mb-6">
             <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
               <Sparkles size={16} />
-              New Collection Available
+              Instant delivery, 24/7
             </span>
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-4 sm:mb-6 tracking-tight leading-tight">
-            Discover Amazing
+            Game Keys,
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
-              Products
+              Delivered Instantly
             </span>
           </h1>
           <p className="text-lg sm:text-xl text-neutral-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Shop the latest trends with our curated collection of premium products. 
-            Fast shipping, secure payments, and exceptional customer service.
+            Genuine keys for Steam, Epic, GOG, Xbox and PlayStation. Pay securely,
+            redeem in seconds, and start playing tonight.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/products"
               className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-secondary-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
-              Shop Now
+              Browse Games
               <ArrowRight size={20} />
             </Link>
             <Link
               to="/categories"
               className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 border-2 border-neutral-300 text-neutral-700 font-semibold rounded-lg hover:border-primary-600 hover:text-primary-600 transition-all duration-200"
             >
-              Browse Categories
+              Browse Genres
             </Link>
           </div>
         </div>
@@ -274,8 +263,8 @@ export default function Home() {
         {/* Features */}
         <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-4 sm:gap-8 text-sm text-neutral-600">
           <div className="flex items-center gap-2">
-            <Truck size={16} />
-            <span className="hidden sm:inline">Free Shipping</span>
+            <Zap size={16} />
+            <span className="hidden sm:inline">Instant Delivery</span>
           </div>
           <div className="flex items-center gap-2">
             <Shield size={16} />
@@ -306,9 +295,9 @@ export default function Home() {
         onAddToCart={handleAddToCart}
       />
       <ProductRow 
-        title="Best Sales of the Week" 
+        title="Popular Right Now" 
         products={bestSales} 
-        seeMoreLink="/products?sort=stock" 
+        seeMoreLink="/products?sort=popular" 
         icon={Zap}
         isLoading={isLoading}
         onAddToCart={handleAddToCart}

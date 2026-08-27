@@ -62,7 +62,7 @@ app.use(express.urlencoded({ extended: true }));
 // Root endpoint - Welcome message
 app.get('/', (req, res) => {
   res.json({
-    message: '🚀 CommerceFlow API is running!',
+    message: '🚀 KeyVault API is running!',
     version: '1.0.0',
     endpoints: {
       health: '/health',
@@ -89,7 +89,7 @@ app.get('/health', (req, res) => {
 // API base endpoint
 app.get('/api', (req, res) => {
   res.json({
-    message: 'CommerceFlow API',
+    message: 'KeyVault API',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',
@@ -151,7 +151,7 @@ app.get('/test-db', async (req, res) => {
 // API Docs endpoint for demo/portfolio
 app.get('/api/docs', (req, res) => {
   res.json({
-    message: 'CommerceFlow API Documentation',
+    message: 'KeyVault API Documentation',
     endpoints: {
       health: '/health',
       products: '/api/products',

@@ -90,7 +90,7 @@ export default function AdminLayout() {
           <div className="flex items-center justify-between h-16 px-6 border-b border-neutral-200">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">CF</span>
+                <span className="text-white font-bold text-sm">KV</span>
               </div>
               <span className="text-xl font-bold text-neutral-900">Admin</span>
             </div>

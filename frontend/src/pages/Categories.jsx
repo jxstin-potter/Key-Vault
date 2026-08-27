@@ -1,15 +1,31 @@
-import { ShoppingBag, Home as HomeIcon, Shirt, BookOpen, Dumbbell, Loader2 } from 'lucide-react';
+import {
+  Gamepad2,
+  Swords,
+  Sparkles,
+  Castle,
+  Plane,
+  Puzzle,
+  Crosshair,
+  Ghost,
+  Trophy,
+  Loader2
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { productApi } from '../lib/productApi';
 
-// Icon mapping for categories
-const categoryIcons = {
-  "Electronics": ShoppingBag,
-  "Clothing": Shirt,
-  "Home & Garden": HomeIcon,
-  "Books": BookOpen,
-  "Sports & Outdoors": Dumbbell
+// Genres carry their own lucide icon name in the database, so this is a
+// name -> component registry rather than a hardcoded list of categories.
+const ICON_REGISTRY = {
+  Swords,
+  Sparkles,
+  Castle,
+  Plane,
+  Puzzle,
+  Crosshair,
+  Ghost,
+  Trophy,
+  Gamepad2
 };
 
 export default function Categories() {
@@ -37,19 +53,12 @@ export default function Categories() {
     fetchCategories();
   }, []);
   
-  const getCategoryIcon = (categoryName) => {
-    return categoryIcons[categoryName] || ShoppingBag;
+  const getCategoryIcon = (category) => {
+    return ICON_REGISTRY[category?.icon] || Gamepad2;
   };
 
-  const getCategoryTagline = (categoryName) => {
-    const taglines = {
-      "Electronics": "Latest tech & gadgets",
-      "Clothing": "Style for every season",
-      "Home & Garden": "Essentials for every home",
-      "Books": "Knowledge and entertainment",
-      "Sports & Outdoors": "Equipment for active lifestyle"
-    };
-    return taglines[categoryName] || "Discover amazing products";
+  const getCategoryTagline = (category) => {
+    return category?.tagline || 'Browse this genre';
   };
 
   if (isLoading) {
@@ -67,13 +76,13 @@ export default function Categories() {
     <div className="min-h-[60vh] w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-neutral-50 to-neutral-100">
       <div className="max-w-4xl mx-auto w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900 mb-4">Categories</h1>
-          <p className="text-lg text-neutral-600">Explore our curated product categories</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900 mb-4">Genres</h1>
+          <p className="text-lg text-neutral-600">Browse games by genre</p>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map(category => {
-            const Icon = getCategoryIcon(category.name);
+            const Icon = getCategoryIcon(category);
             return (
               <button
                 key={category.id}
@@ -84,10 +93,10 @@ export default function Categories() {
                   <Icon size={28} className="sm:w-8 sm:h-8" />
                 </div>
                 <h3 className="font-semibold text-neutral-900 mb-2 text-lg">{category.name}</h3>
-                <p className="text-neutral-500 text-sm mb-3">{getCategoryTagline(category.name)}</p>
+                <p className="text-neutral-500 text-sm mb-3">{getCategoryTagline(category)}</p>
                 {category.productCount > 0 && (
                   <p className="text-xs text-neutral-400 bg-neutral-50 px-3 py-1 rounded-full">
-                    {category.productCount} products
+                    {category.productCount} {category.productCount === 1 ? "game" : "games"}
                   </p>
                 )}
               </button>

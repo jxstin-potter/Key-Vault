@@ -23,13 +23,13 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-sm">CF</span>
+                <span className="text-white font-bold text-sm">KV</span>
               </div>
-              <span className="text-xl font-bold text-gradient-primary">CommerceFlow</span>
+              <span className="text-xl font-bold text-gradient-primary">KeyVault</span>
             </div>
             <p className="text-neutral-400 text-sm leading-relaxed">
-              Your trusted destination for quality products and exceptional shopping experiences. 
-              We're committed to providing the best service to our customers.
+              Genuine game keys for every major platform, delivered the moment
+              your payment clears. No waiting, no shipping, no nonsense.
             </p>
             <div className="flex space-x-4">
               <a 
@@ -123,35 +123,19 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/shipping" 
+                <Link
+                  to="/keys"
                   className="text-neutral-400 hover:text-white transition-colors text-sm"
                 >
-                  Shipping Info
+                  My Keys
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/returns" 
+                <Link
+                  to="/orders"
                   className="text-neutral-400 hover:text-white transition-colors text-sm"
                 >
-                  Returns & Exchanges
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/faq" 
-                  className="text-neutral-400 hover:text-white transition-colors text-sm"
-                >
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/size-guide" 
-                  className="text-neutral-400 hover:text-white transition-colors text-sm"
-                >
-                  Size Guide
+                  Order History
                 </Link>
               </li>
             </ul>
@@ -185,7 +169,7 @@ export default function Footer() {
         <div className="border-t border-neutral-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-neutral-400 text-sm">
-              © {currentYear} CommerceFlow. All rights reserved.
+              © {currentYear} KeyVault. All rights reserved.
             </p>
             <div className="flex items-center space-x-6 text-sm">
               <Link 

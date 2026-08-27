@@ -11,7 +11,9 @@ router.get('/', async (req, res) => {
     const categories = await prisma.category.findMany({
       include: {
         _count: {
-          select: { products: true }
+          // Soft-deleted games remain in the table with isActive false;
+          // counting them would inflate the genre totals shoppers see.
+          select: { products: { where: { isActive: true } } }
         }
       },
       orderBy: { name: 'asc' }
