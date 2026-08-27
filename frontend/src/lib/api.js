@@ -6,10 +6,15 @@ import toast from 'react-hot-toast';
 const isDevelopment = import.meta.env.DEV;
 const apiUrl = import.meta.env.VITE_API_URL || (isDevelopment ? 'http://localhost:5000/api' : 'https://your-backend-url.onrender.com/api');
 
+// The API is hosted on Render's free tier, which spins the instance down
+// after inactivity. A cold start regularly takes 30-60s, so a short timeout
+// makes the first visit after an idle period look like an empty store.
+const REQUEST_TIMEOUT_MS = 45000;
+
 // Create axios instance
 export const api = axios.create({
   baseURL: apiUrl,
-  timeout: 10000,
+  timeout: REQUEST_TIMEOUT_MS,
   headers: {
     'Content-Type': 'application/json',
   },

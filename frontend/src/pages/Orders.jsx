@@ -216,9 +216,6 @@ export default function Orders() {
                           <p className="font-bold text-neutral-900">
                             ${parseFloat(order.total).toFixed(2)}
                           </p>
-                          <p className="text-sm text-neutral-600">
-                            {order.orderItems.length} {order.orderItems.length === 1 ? 'item' : 'items'}
-                          </p>
                         </div>
                       </div>
                     </div>
