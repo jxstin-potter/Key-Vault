@@ -4,6 +4,28 @@ import prisma from '../lib/prisma.js';
 
 const router = express.Router();
 
+// Products no longer carry a stock column - sellable inventory is the number
+// of AVAILABLE game keys. Select that count and surface it as `stock` so the
+// client-facing shape is unchanged.
+const AVAILABLE_KEYS = { select: { gameKeys: { where: { status: 'AVAILABLE' } } } };
+
+const productSelect = {
+  id: true,
+  name: true,
+  price: true,
+  images: true,
+  isActive: true,
+  _count: AVAILABLE_KEYS
+};
+
+const withStock = (product) => {
+  if (!product) return product;
+  const { _count, ...rest } = product;
+  return { ...rest, stock: _count?.gameKeys ?? 0 };
+};
+
+const itemWithStock = (item) => ({ ...item, product: withStock(item.product) });
+
 // Get user's cart
 router.get('/', async (req, res) => {
   try {
@@ -11,21 +33,16 @@ router.get('/', async (req, res) => {
       where: { userId: req.user.id },
       include: {
         product: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-            images: true,
-            stock: true,
-            isActive: true
-          }
+          select: productSelect
         }
       },
       orderBy: { createdAt: 'desc' }
     });
 
     // Filter out inactive products and calculate totals
-    const validCartItems = cartItems.filter(item => item.product.isActive);
+    const validCartItems = cartItems
+      .filter(item => item.product.isActive)
+      .map(itemWithStock);
     const total = validCartItems.reduce((sum, item) => {
       return sum + (item.product.price * item.quantity);
     }, 0);
@@ -62,15 +79,17 @@ router.post('/add', [
 
     // Check if product exists and is active
     const product = await prisma.product.findUnique({
-      where: { id: productId }
+      where: { id: productId },
+      select: { id: true, isActive: true, _count: AVAILABLE_KEYS }
     });
 
     if (!product || !product.isActive) {
       return res.status(404).json({ message: 'Product not found or unavailable' });
     }
 
-    // Check stock
-    if (product.stock < quantity) {
+    // Sellable inventory is the number of unclaimed keys
+    const availableKeys = product._count.gameKeys;
+    if (availableKeys < quantity) {
       return res.status(400).json({ message: 'Insufficient stock' });
     }
 
@@ -88,7 +107,7 @@ router.post('/add', [
       // Update quantity
       const newQuantity = existingItem.quantity + quantity;
       
-      if (product.stock < newQuantity) {
+      if (availableKeys < newQuantity) {
         return res.status(400).json({ message: 'Insufficient stock' });
       }
 
@@ -97,21 +116,14 @@ router.post('/add', [
         data: { quantity: newQuantity },
         include: {
           product: {
-            select: {
-              id: true,
-              name: true,
-              price: true,
-              images: true,
-              stock: true,
-              isActive: true
-            }
+            select: productSelect
           }
         }
       });
 
       return res.json({
         message: 'Cart item updated',
-        item: updatedItem
+        item: itemWithStock(updatedItem)
       });
     }
 
@@ -124,21 +136,14 @@ router.post('/add', [
       },
       include: {
         product: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-            images: true,
-            stock: true,
-            isActive: true
-          }
+          select: productSelect
         }
       }
     });
 
     res.status(201).json({
       message: 'Item added to cart',
-      item: newItem
+      item: itemWithStock(newItem)
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to add item to cart' });
@@ -165,7 +170,7 @@ router.put('/update/:itemId', [
         userId: req.user.id
       },
       include: {
-        product: true
+        product: { select: { id: true, _count: AVAILABLE_KEYS } }
       }
     });
 
@@ -173,8 +178,7 @@ router.put('/update/:itemId', [
       return res.status(404).json({ message: 'Cart item not found' });
     }
 
-    // Check stock
-    if (cartItem.product.stock < quantity) {
+    if (cartItem.product._count.gameKeys < quantity) {
       return res.status(400).json({ message: 'Insufficient stock' });
     }
 
@@ -183,21 +187,14 @@ router.put('/update/:itemId', [
       data: { quantity },
       include: {
         product: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-            images: true,
-            stock: true,
-            isActive: true
-          }
+          select: productSelect
         }
       }
     });
 
     res.json({
       message: 'Cart item updated',
-      item: updatedItem
+      item: itemWithStock(updatedItem)
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to update cart item' });

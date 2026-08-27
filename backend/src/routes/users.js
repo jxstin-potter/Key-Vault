@@ -36,11 +36,11 @@ router.get('/', requireAdmin, async (req, res) => {
     const usersWithStats = users.map(user => {
       // Calculate total spent from completed orders
       const totalSpent = user.orders
-        .filter(order => order.status === 'DELIVERED')
+        .filter(order => order.status === 'COMPLETED')
         .reduce((sum, order) => sum + order.total, 0);
 
       // Calculate average order value
-      const completedOrders = user.orders.filter(order => order.status === 'DELIVERED');
+      const completedOrders = user.orders.filter(order => order.status === 'COMPLETED');
       const averageOrderValue = completedOrders.length > 0 
         ? totalSpent / completedOrders.length 
         : 0;
@@ -204,11 +204,11 @@ router.get('/me/stats', async (req, res) => {
 
     // Calculate total spent
     const totalSpent = stats.orders
-      .filter(order => order.status === 'DELIVERED')
+      .filter(order => order.status === 'COMPLETED')
       .reduce((sum, order) => sum + order.total, 0);
 
     // Calculate average order value
-    const completedOrders = stats.orders.filter(order => order.status === 'DELIVERED');
+    const completedOrders = stats.orders.filter(order => order.status === 'COMPLETED');
     const averageOrderValue = completedOrders.length > 0 
       ? totalSpent / completedOrders.length 
       : 0;

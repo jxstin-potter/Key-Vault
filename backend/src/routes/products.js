@@ -3,7 +3,20 @@ import { body, validationResult, query } from 'express-validator';
 import prisma from '../lib/prisma.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
+const PLATFORMS = ['STEAM', 'EPIC', 'GOG', 'XBOX', 'PLAYSTATION', 'BATTLENET', 'UBISOFT', 'NINTENDO'];
+const REGIONS = ['GLOBAL', 'NA', 'EU', 'UK', 'ASIA', 'LATAM'];
+
 const router = express.Router();
+
+// Stock is derived: a product's sellable inventory is its count of AVAILABLE
+// game keys. Surfaced as `stock` so the client-facing shape is unchanged.
+const AVAILABLE_KEYS = { select: { gameKeys: { where: { status: 'AVAILABLE' } } } };
+
+const withStock = (product) => {
+  if (!product) return product;
+  const { _count, ...rest } = product;
+  return { ...rest, stock: _count?.gameKeys ?? 0 };
+};
 
 // Get all products with filtering and pagination
 router.get('/', [
@@ -65,12 +78,7 @@ router.get('/', [
           category: {
             select: { id: true, name: true }
           },
-          reviews: {
-            select: { rating: true }
-          },
-          _count: {
-            select: { reviews: true }
-          }
+          _count: AVAILABLE_KEYS
         },
         orderBy: { [sortBy]: sortOrder },
         skip,
@@ -79,20 +87,9 @@ router.get('/', [
       prisma.product.count({ where })
     ]);
 
-    // Calculate average rating for each product
-    const productsWithRating = products.map(product => {
-      const avgRating = product.reviews.length > 0
-        ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
-        : 0;
-
-      return {
-        ...product,
-        averageRating: Math.round(avgRating * 10) / 10,
-        reviewCount: product._count.reviews,
-        reviews: undefined,
-        _count: undefined
-      };
-    });
+    // averageRating / reviewCount are denormalised columns, maintained in
+    // routes/reviews.js. Only stock needs deriving here.
+    const productsWithRating = products.map(withStock);
 
     res.json({
       products: productsWithRating,
@@ -134,9 +131,7 @@ router.get('/:id', async (req, res) => {
           },
           orderBy: { createdAt: 'desc' }
         },
-        _count: {
-          select: { reviews: true }
-        }
+        _count: AVAILABLE_KEYS
       }
     });
 
@@ -144,17 +139,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Calculate average rating
-    const avgRating = product.reviews.length > 0
-      ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
-      : 0;
-
-    const productWithRating = {
-      ...product,
-      averageRating: Math.round(avgRating * 10) / 10,
-      reviewCount: product._count.reviews,
-      _count: undefined
-    };
+    const productWithRating = withStock(product);
 
     res.json({ product: productWithRating });
   } catch (error) {
@@ -167,9 +152,14 @@ router.post('/', authenticateToken, requireAdmin, [
   body('name').trim().isLength({ min: 1, max: 255 }),
   body('description').trim().isLength({ min: 1 }),
   body('price').isFloat({ min: 0 }),
-  body('stock').isInt({ min: 0 }),
   body('categoryId').isString(),
-  body('images').isArray()
+  body('images').isArray(),
+  body('slug').trim().isSlug(),
+  body('platform').isIn(PLATFORMS),
+  body('region').isIn(REGIONS),
+  body('developer').optional({ values: 'falsy' }).trim().isLength({ max: 255 }),
+  body('publisher').optional({ values: 'falsy' }).trim().isLength({ max: 255 }),
+  body('releaseDate').optional({ values: 'falsy' }).isISO8601()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -177,7 +167,8 @@ router.post('/', authenticateToken, requireAdmin, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, description, price, stock, categoryId, images } = req.body;
+    const { name, description, price, categoryId, images, slug,
+            platform, region, developer, publisher, releaseDate } = req.body;
 
     // Verify category exists
     const category = await prisma.category.findUnique({
@@ -193,9 +184,14 @@ router.post('/', authenticateToken, requireAdmin, [
         name,
         description,
         price,
-        stock,
         categoryId,
-        images
+        images,
+        slug,
+        platform,
+        region,
+        developer: developer || null,
+        publisher: publisher || null,
+        releaseDate: releaseDate ? new Date(releaseDate) : null
       },
       include: {
         category: {
@@ -218,10 +214,15 @@ router.put('/:id', authenticateToken, requireAdmin, [
   body('name').optional().trim().isLength({ min: 1, max: 255 }),
   body('description').optional().trim().isLength({ min: 1 }),
   body('price').optional().isFloat({ min: 0 }),
-  body('stock').optional().isInt({ min: 0 }),
   body('categoryId').optional().isString(),
   body('images').optional().isArray(),
-  body('isActive').optional().isBoolean()
+  body('isActive').optional().isBoolean(),
+  body('slug').optional().trim().isSlug(),
+  body('platform').optional().isIn(PLATFORMS),
+  body('region').optional().isIn(REGIONS),
+  body('developer').optional({ values: 'falsy' }).trim().isLength({ max: 255 }),
+  body('publisher').optional({ values: 'falsy' }).trim().isLength({ max: 255 }),
+  body('releaseDate').optional({ values: 'falsy' }).isISO8601()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);

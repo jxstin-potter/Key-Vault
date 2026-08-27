@@ -1,8 +1,16 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import prisma from '../lib/prisma.js';
+import {
+  reserveKeys,
+  fulfillKeys,
+  withKeyRetry,
+  OutOfKeysError
+} from '../lib/keys.js';
 
 const router = express.Router();
+
+const AVAILABLE_KEYS = { select: { gameKeys: { where: { status: 'AVAILABLE' } } } };
 
 // Get user's orders (or all orders for admin)
 router.get('/', async (req, res) => {
@@ -58,7 +66,7 @@ router.get('/stats', async (req, res) => {
       where: { status: 'PENDING' }
     });
     const completedOrders = await prisma.order.count({
-      where: { status: 'DELIVERED' }
+      where: { status: 'COMPLETED' }
     });
 
     // Recent orders for dashboard
@@ -137,12 +145,9 @@ router.get('/:id', async (req, res) => {
 
 // Create order from cart
 router.post('/create', [
-  body('shippingAddress').isObject(),
-  body('shippingAddress.street').isString(),
-  body('shippingAddress.city').isString(),
-  body('shippingAddress.state').isString(),
-  body('shippingAddress.zipCode').isString(),
-  body('shippingAddress.country').isString()
+  // Digital keys need no shipping address. Still accepted for backward
+  // compatibility with the pre-pivot checkout, but no longer required.
+  body('shippingAddress').optional().isObject()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -161,8 +166,8 @@ router.post('/create', [
             id: true,
             name: true,
             price: true,
-            stock: true,
-            isActive: true
+            isActive: true,
+            _count: AVAILABLE_KEYS
           }
         }
       }
@@ -183,9 +188,9 @@ router.post('/create', [
     const orderItems = [];
 
     for (const item of validItems) {
-      if (item.product.stock < item.quantity) {
-        return res.status(400).json({ 
-          message: `Insufficient stock for ${item.product.name}` 
+      if (item.product._count.gameKeys < item.quantity) {
+        return res.status(400).json({
+          message: `Insufficient stock for ${item.product.name}`
         });
       }
       total += item.product.price * item.quantity;
@@ -196,33 +201,42 @@ router.post('/create', [
       });
     }
 
-    // Create order in transaction
-    const order = await prisma.$transaction(async (tx) => {
-      // Create order
+    // Create order in transaction. Keys are claimed atomically here, which
+    // replaces the old read-modify-write stock decrement (that could oversell
+    // under concurrency). No payment step exists yet, so keys are reserved and
+    // immediately fulfilled; Phase 3 splits these across the Stripe webhook.
+    const order = await withKeyRetry(() => prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
           userId: req.user.id,
           total,
-          shippingAddress,
-          paymentIntent
+          shippingAddress: shippingAddress ?? null,
+          paymentIntent,
+          status: 'COMPLETED',
+          paidAt: new Date()
         }
       });
 
-      // Create order items
-      await tx.orderItem.createMany({
-        data: orderItems.map(item => ({
-          orderId: newOrder.id,
-          ...item
-        }))
-      });
-
-      // Update product stock
+      // Create items one at a time: reserveKeys needs each item's id
       for (const item of validItems) {
-        await tx.product.update({
-          where: { id: item.product.id },
-          data: { stock: item.product.stock - item.quantity }
+        const orderItem = await tx.orderItem.create({
+          data: {
+            orderId: newOrder.id,
+            productId: item.product.id,
+            quantity: item.quantity,
+            price: item.product.price
+          }
+        });
+
+        await reserveKeys(tx, {
+          productId: item.product.id,
+          orderItemId: orderItem.id,
+          quantity: item.quantity,
+          until: new Date(Date.now() + 5 * 60 * 1000)
         });
       }
+
+      await fulfillKeys(tx, newOrder.id);
 
       // Clear cart
       await tx.cartItem.deleteMany({
@@ -245,20 +259,23 @@ router.post('/create', [
           }
         }
       });
-    });
+    }));
 
     res.status(201).json({
       message: 'Order created successfully',
       order
     });
   } catch (error) {
+    if (error instanceof OutOfKeysError) {
+      return res.status(409).json({ message: 'Not enough keys available for one of your items' });
+    }
     res.status(500).json({ message: 'Failed to create order' });
   }
 });
 
 // Update order status (admin only)
 router.put('/:id/status', [
-  body('status').isIn(['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'])
+  body('status').isIn(['PENDING', 'PAID', 'COMPLETED', 'FAILED', 'CANCELLED', 'REFUNDED'])
 ], async (req, res) => {
   try {
     if (req.user.role !== 'ADMIN') {

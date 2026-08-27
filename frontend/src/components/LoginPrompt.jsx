@@ -40,7 +40,7 @@ export default function LoginPrompt({
         <div className="mt-8 p-4 bg-neutral-50 rounded-lg">
           <p className="text-sm text-neutral-600 mb-2">Test Account:</p>
           <p className="text-xs text-neutral-500">
-            Email: user@commerceflow.com<br />
+            Email: user@keyvault.com<br />
             Password: user123
           </p>
         </div>

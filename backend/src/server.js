@@ -159,8 +159,8 @@ app.get('/api/docs', (req, res) => {
       users: '/api/users (admin only)'
     },
     demoAccounts: {
-      admin: 'admin@commerceflow.com / admin123',
-      user: 'user@commerceflow.com / user123'
+      admin: 'admin@keyvault.com / admin123',
+      user: 'user@keyvault.com / user123'
     },
     note: 'For POST endpoints, use JSON body as described in the README.'
   });

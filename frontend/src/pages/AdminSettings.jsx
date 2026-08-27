@@ -26,7 +26,7 @@ export default function AdminSettings() {
   const [storeSettings, setStoreSettings] = useState({
     name: 'CommerceFlow',
     description: 'Your premium e-commerce destination',
-    email: 'admin@commerceflow.com',
+    email: 'admin@keyvault.com',
     phone: '+1 (555) 123-4567',
     address: {
       street: '123 Commerce St',
@@ -44,7 +44,7 @@ export default function AdminSettings() {
   const [userSettings, setUserSettings] = useState({
     firstName: 'Admin',
     lastName: 'User',
-    email: 'admin@commerceflow.com',
+    email: 'admin@keyvault.com',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''

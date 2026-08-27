@@ -163,7 +163,7 @@ export default function Footer() {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Mail size={16} className="text-primary-500" />
-                <span className="text-neutral-400 text-sm">support@commerceflow.com</span>
+                <span className="text-neutral-400 text-sm">support@keyvault.com</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone size={16} className="text-primary-500" />

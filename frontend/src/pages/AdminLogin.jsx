@@ -72,7 +72,7 @@ export default function AdminLogin() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                  placeholder="admin@commerceflow.com"
+                  placeholder="admin@keyvault.com"
                 />
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function AdminLogin() {
           <div className="mt-6 p-4 bg-neutral-50 rounded-lg">
             <p className="text-sm text-neutral-600 mb-2">Test Admin Account:</p>
             <p className="text-xs text-neutral-500">
-              Email: admin@commerceflow.com<br />
+              Email: admin@keyvault.com<br />
               Password: admin123
             </p>
           </div>

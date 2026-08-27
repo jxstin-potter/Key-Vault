@@ -106,10 +106,11 @@ export function validatePassword(password) {
 export function getOrderStatusColor(status) {
   const statusColors = {
     PENDING: 'warning',
-    PROCESSING: 'primary',
-    SHIPPED: 'secondary',
-    DELIVERED: 'success',
+    PAID: 'primary',
+    COMPLETED: 'success',
+    FAILED: 'error',
     CANCELLED: 'error',
+    REFUNDED: 'neutral',
   };
   return statusColors[status] || 'neutral';
 }
@@ -117,11 +118,12 @@ export function getOrderStatusColor(status) {
 // Get order status text
 export function getOrderStatusText(status) {
   const statusTexts = {
-    PENDING: 'Pending',
-    PROCESSING: 'Processing',
-    SHIPPED: 'Shipped',
-    DELIVERED: 'Delivered',
+    PENDING: 'Awaiting payment',
+    PAID: 'Paid',
+    COMPLETED: 'Keys delivered',
+    FAILED: 'Payment failed',
     CANCELLED: 'Cancelled',
+    REFUNDED: 'Refunded',
   };
   return statusTexts[status] || status;
 }

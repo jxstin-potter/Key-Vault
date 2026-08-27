@@ -28,11 +28,15 @@ model User {
   @@map("users")
 }
 
+// Categories double as game genres (Action, RPG, Strategy, ...)
 model Category {
   id          String   @id @default(cuid())
   name        String   @unique
+  slug        String?  @unique
   description String?
   image       String?
+  icon        String?  // lucide-react icon name, e.g. "Swords"
+  tagline     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -42,41 +46,82 @@ model Category {
   @@map("categories")
 }
 
+// A Product is a purchasable game listing. Stock is NOT stored here -
+// it is derived from the count of AVAILABLE gameKeys.
 model Product {
   id          String   @id @default(cuid())
   name        String
+  slug        String   @unique
   description String
   price       Decimal  @db.Decimal(10, 2)
   images      String[] // Array of image URLs
-  stock       Int      @default(0)
   isActive    Boolean  @default(true)
   categoryId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  // Game metadata
+  platform    Platform  @default(STEAM)
+  region      Region    @default(GLOBAL)
+  developer   String?
+  publisher   String?
+  releaseDate DateTime?
+
+  // Denormalised review aggregates, maintained in routes/reviews.js
+  averageRating Float @default(0)
+  reviewCount   Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   category   Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
   cartItems  CartItem[]
   reviews    Review[]
+  gameKeys   GameKey[]
 
+  @@index([platform])
+  @@index([region])
+  @@index([categoryId])
   @@map("products")
 }
 
-model Order {
+// One redeemable CD key. Inventory lives here, one row per sellable unit.
+model GameKey {
   id            String        @id @default(cuid())
-  userId        String
-  status        OrderStatus   @default(PENDING)
-  total         Decimal       @db.Decimal(10, 2)
-  shippingAddress Json
-  paymentIntent String?       // Stripe payment intent ID
+  code          String        @unique
+  productId     String
+  status        GameKeyStatus @default(AVAILABLE)
+  orderItemId   String?
+  reservedUntil DateTime?
+  soldAt        DateTime?
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItem OrderItem? @relation(fields: [orderItemId], references: [id])
+
+  @@index([productId, status])
+  @@index([status, reservedUntil])
+  @@map("game_keys")
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  status          OrderStatus @default(PENDING)
+  total           Decimal     @db.Decimal(10, 2)
+  shippingAddress Json?       // legacy physical-goods field; unused for digital keys
+  stripeSessionId String?     @unique
+  paymentIntent   String?     // Stripe PaymentIntent id
+  paidAt          DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   // Relations
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
 
+  @@index([userId, createdAt])
   @@map("orders")
 }
 
@@ -88,17 +133,18 @@ model OrderItem {
   price     Decimal @db.Decimal(10, 2)
 
   // Relations
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  order    Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product  Product   @relation(fields: [productId], references: [id])
+  gameKeys GameKey[]
 
   @@map("order_items")
 }
 
 model CartItem {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
   productId String
-  quantity  Int    @default(1)
+  quantity  Int      @default(1)
   createdAt DateTime @default(now())
 
   // Relations
@@ -131,10 +177,38 @@ enum Role {
   ADMIN
 }
 
+enum Platform {
+  STEAM
+  EPIC
+  GOG
+  XBOX
+  PLAYSTATION
+  BATTLENET
+  UBISOFT
+  NINTENDO
+}
+
+enum Region {
+  GLOBAL
+  NA
+  EU
+  UK
+  ASIA
+  LATAM
+}
+
+enum GameKeyStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  REVOKED
+}
+
 enum OrderStatus {
   PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
+  PAID
+  COMPLETED
+  FAILED
   CANCELLED
+  REFUNDED
 }

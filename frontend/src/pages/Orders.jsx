@@ -3,15 +3,10 @@ import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, 
   Package, 
-  Truck, 
-  CheckCircle, 
+  KeyRound, 
   Clock, 
   XCircle, 
-  MapPin, 
-  Calendar,
-  DollarSign,
   RefreshCw,
-  Eye
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { api } from '../lib/api';
@@ -19,34 +14,41 @@ import toast from 'react-hot-toast';
 
 const orderStatusConfig = {
   PENDING: {
-    label: 'Pending',
+    label: 'Awaiting payment',
     color: 'bg-yellow-100 text-yellow-800',
     icon: Clock
   },
-  PROCESSING: {
-    label: 'Processing',
+  PAID: {
+    label: 'Paid',
     color: 'bg-blue-100 text-blue-800',
     icon: Package
   },
-  SHIPPED: {
-    label: 'Shipped',
-    color: 'bg-purple-100 text-purple-800',
-    icon: Truck
-  },
-  DELIVERED: {
-    label: 'Delivered',
+  COMPLETED: {
+    label: 'Keys delivered',
     color: 'bg-green-100 text-green-800',
-    icon: CheckCircle
+    icon: KeyRound
+  },
+  FAILED: {
+    label: 'Payment failed',
+    color: 'bg-red-100 text-red-800',
+    icon: XCircle
   },
   CANCELLED: {
     label: 'Cancelled',
     color: 'bg-red-100 text-red-800',
     icon: XCircle
+  },
+  REFUNDED: {
+    label: 'Refunded',
+    color: 'bg-neutral-200 text-neutral-700',
+    icon: RefreshCw
   }
 };
 
-// Linear fulfilment progression. CANCELLED is terminal and sits outside it.
-const STATUS_PROGRESSION = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+// Happy-path progression. FAILED / CANCELLED / REFUNDED are terminal states
+// that sit outside it and light up only their own row.
+const STATUS_PROGRESSION = ['PENDING', 'PAID', 'COMPLETED'];
+const TERMINAL_STATUSES = ['FAILED', 'CANCELLED', 'REFUNDED'];
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -207,7 +209,7 @@ export default function Orders() {
                             {order.orderItems.length} {order.orderItems.length === 1 ? 'item' : 'items'}
                           </p>
                           <p className="text-sm text-neutral-600">
-                            {order.shippingAddress.city}, {order.shippingAddress.state}
+                            {order.orderItems.reduce((n, i) => n + i.quantity, 0)} {order.orderItems.reduce((n, i) => n + i.quantity, 0) === 1 ? 'key' : 'keys'}
                           </p>
                         </div>
                         <div className="text-right">
@@ -243,8 +245,8 @@ export default function Orders() {
                         const isActive = selectedOrder.status === status;
                         const orderIdx = STATUS_PROGRESSION.indexOf(selectedOrder.status);
                         const rowIdx = STATUS_PROGRESSION.indexOf(status);
-                        const isCompleted = selectedOrder.status === 'CANCELLED'
-                          ? status === 'CANCELLED'
+                        const isCompleted = TERMINAL_STATUSES.includes(selectedOrder.status)
+                          ? status === selectedOrder.status
                           : rowIdx !== -1 && orderIdx !== -1 && rowIdx <= orderIdx;
                         
                         return (
@@ -298,13 +300,18 @@ export default function Orders() {
                     </div>
                   </div>
 
-                  {/* Shipping Address */}
+                  {/* Key delivery. Digital orders carry no shipping address. */}
                   <div className="mb-6">
-                    <h4 className="font-medium text-neutral-900 mb-3">Shipping Address</h4>
+                    <h4 className="font-medium text-neutral-900 mb-3">Delivery</h4>
                     <div className="text-sm text-neutral-600 space-y-1">
-                      <p>{selectedOrder.shippingAddress.street}</p>
-                      <p>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} {selectedOrder.shippingAddress.zipCode}</p>
-                      <p>{selectedOrder.shippingAddress.country}</p>
+                      {selectedOrder.status === 'COMPLETED' ? (
+                        <p className="flex items-center gap-2">
+                          <KeyRound size={16} className="text-green-600" />
+                          Keys delivered to your account
+                        </p>
+                      ) : (
+                        <p>Keys are released once payment completes.</p>
+                      )}
                     </div>
                   </div>
 

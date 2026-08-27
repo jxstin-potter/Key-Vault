@@ -1,39 +1,42 @@
-import express from 'express';
-import prisma from '../lib/prisma.js';
-import { Parser as Json2csvParser } from 'json2csv';
-import { requireAdmin } from '../middleware/auth.js';
+import express from "express";
+import prisma from "../lib/prisma.js";
+import { Parser as Json2csvParser } from "json2csv";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
+// Stock is derived from the count of AVAILABLE game keys.
+const AVAILABLE_KEYS = { select: { gameKeys: { where: { status: "AVAILABLE" } } } };
+const LOW_STOCK_THRESHOLD = 10;
 
 // Test endpoint to check authentication
-router.get('/test', requireAdmin, (req, res) => {
-  res.json({ 
-    message: 'Admin authentication working!',
+router.get("/test", requireAdmin, (req, res) => {
+  res.json({
+    message: "Admin authentication working!",
     user: req.user,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
 // Get dashboard overview statistics
-router.get('/overview', requireAdmin, async (req, res) => {
+router.get("/overview", requireAdmin, async (req, res) => {
   try {
     // Basic stats
     const totalOrders = await prisma.order.count();
     const totalRevenue = await prisma.order.aggregate({
-      _sum: { total: true }
+      _sum: { total: true },
     });
     const totalUsers = await prisma.user.count({
-      where: { role: 'USER' }
+      where: { role: "USER" },
     });
     const totalProducts = await prisma.product.count({
-      where: { isActive: true }
+      where: { isActive: true },
     });
 
     // Order status breakdown
     const orderStatuses = await prisma.order.groupBy({
-      by: ['status'],
-      _count: { status: true }
+      by: ["status"],
+      _count: { status: true },
     });
 
     // Monthly revenue for the last 6 months
@@ -41,25 +44,25 @@ router.get('/overview', requireAdmin, async (req, res) => {
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const monthlyRevenue = await prisma.order.groupBy({
-      by: ['createdAt'],
+      by: ["createdAt"],
       _sum: { total: true },
       where: {
         createdAt: {
-          gte: sixMonthsAgo
-        }
-      }
+          gte: sixMonthsAgo,
+        },
+      },
     });
 
     // Top selling products
     const topProducts = await prisma.orderItem.groupBy({
-      by: ['productId'],
+      by: ["productId"],
       _sum: { quantity: true },
       orderBy: {
         _sum: {
-          quantity: 'desc'
-        }
+          quantity: "desc",
+        },
       },
-      take: 5
+      take: 5,
     });
 
     // Get product details for top products
@@ -67,22 +70,22 @@ router.get('/overview', requireAdmin, async (req, res) => {
       topProducts.map(async (item) => {
         const product = await prisma.product.findUnique({
           where: { id: item.productId },
-          select: { 
-            id: true, 
-            name: true, 
-            price: true, 
+          select: {
+            id: true,
+            name: true,
+            price: true,
             images: true,
             category: {
-              select: { name: true }
-            }
-          }
+              select: { name: true },
+            },
+          },
         });
         return {
           ...product,
-          category: product?.category?.name || 'Uncategorized',
-          totalSold: item._sum.quantity
+          category: product?.category?.name || "Uncategorized",
+          totalSold: item._sum.quantity,
         };
-      })
+      }),
     );
 
     // Recent activity
@@ -93,24 +96,24 @@ router.get('/overview', requireAdmin, async (req, res) => {
           select: {
             firstName: true,
             lastName: true,
-            email: true
-          }
-        }
+            email: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     const recentUsers = await prisma.user.findMany({
-      where: { role: 'USER' },
+      where: { role: "USER" },
       take: 5,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         firstName: true,
         lastName: true,
         email: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
 
     // Calculate growth percentages (comparing last 30 days vs previous 30 days)
@@ -120,40 +123,53 @@ router.get('/overview', requireAdmin, async (req, res) => {
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
     const recentOrdersCount = await prisma.order.count({
-      where: { createdAt: { gte: thirtyDaysAgo } }
+      where: { createdAt: { gte: thirtyDaysAgo } },
     });
 
     const previousOrdersCount = await prisma.order.count({
-      where: { 
-        createdAt: { 
+      where: {
+        createdAt: {
           gte: sixtyDaysAgo,
-          lt: thirtyDaysAgo
-        } 
-      }
+          lt: thirtyDaysAgo,
+        },
+      },
     });
 
     const recentRevenue = await prisma.order.aggregate({
       _sum: { total: true },
-      where: { createdAt: { gte: thirtyDaysAgo } }
+      where: { createdAt: { gte: thirtyDaysAgo } },
     });
 
     const previousRevenue = await prisma.order.aggregate({
       _sum: { total: true },
-      where: { 
-        createdAt: { 
+      where: {
+        createdAt: {
           gte: sixtyDaysAgo,
-          lt: thirtyDaysAgo
-        } 
-      }
+          lt: thirtyDaysAgo,
+        },
+      },
     });
 
-    const orderGrowth = previousOrdersCount > 0 
-      ? Math.round(((recentOrdersCount - previousOrdersCount) / previousOrdersCount) * 100)
-      : recentOrdersCount > 0 ? 100 : 0;
+    const orderGrowth =
+      previousOrdersCount > 0
+        ? Math.round(
+            ((recentOrdersCount - previousOrdersCount) / previousOrdersCount) *
+              100,
+          )
+        : recentOrdersCount > 0
+          ? 100
+          : 0;
 
-    const revenueGrowth = (previousRevenue._sum.total || 0) > 0
-      ? Math.round(((recentRevenue._sum.total - previousRevenue._sum.total) / previousRevenue._sum.total) * 100)
-      : (recentRevenue._sum.total || 0) > 0 ? 100 : 0;
+    const revenueGrowth =
+      (previousRevenue._sum.total || 0) > 0
+        ? Math.round(
+            ((recentRevenue._sum.total - previousRevenue._sum.total) /
+              previousRevenue._sum.total) *
+              100,
+          )
+        : (recentRevenue._sum.total || 0) > 0
+          ? 100
+          : 0;
 
     res.json({
       overview: {
@@ -167,22 +183,22 @@ router.get('/overview', requireAdmin, async (req, res) => {
           acc[status.status] = status._count.status;
           return acc;
         }, {}),
-        monthlyRevenue: monthlyRevenue.map(item => ({
+        monthlyRevenue: monthlyRevenue.map((item) => ({
           month: item.createdAt.toISOString().slice(0, 7),
-          revenue: item._sum.total || 0
+          revenue: item._sum.total || 0,
         })),
         topProducts: topProductDetails,
         recentOrders,
-        recentUsers
-      }
+        recentUsers,
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch analytics overview' });
+    res.status(500).json({ message: "Failed to fetch analytics overview" });
   }
 });
 
 // Get sales analytics with advanced filtering and CSV export
-router.get('/sales', requireAdmin, async (req, res) => {
+router.get("/sales", requireAdmin, async (req, res) => {
   try {
     const { start, end, productId, category, exportCsv } = req.query;
     let startDate = start ? new Date(start) : null;
@@ -191,8 +207,10 @@ router.get('/sales', requireAdmin, async (req, res) => {
 
     // Build where clause for orders
     const orderWhere = {};
-    if (startDate) orderWhere.createdAt = { ...orderWhere.createdAt, gte: startDate };
-    if (endDate) orderWhere.createdAt = { ...orderWhere.createdAt, lte: endDate };
+    if (startDate)
+      orderWhere.createdAt = { ...orderWhere.createdAt, gte: startDate };
+    if (endDate)
+      orderWhere.createdAt = { ...orderWhere.createdAt, lte: endDate };
 
     // Daily sales for the period
     const dailySales = await prisma.order.findMany({
@@ -200,71 +218,73 @@ router.get('/sales', requireAdmin, async (req, res) => {
       select: {
         createdAt: true,
         total: true,
-        id: true
+        id: true,
       },
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: "asc" },
     });
 
     // Sales by category/product
-    const orderIds = dailySales.map(o => o.id);
+    const orderIds = dailySales.map((o) => o.id);
     const orderItemWhere = { orderId: { in: orderIds } };
     if (productId) orderItemWhere.productId = productId;
     // Get product details for category filtering
     let productIds = undefined;
     if (category) {
-      const products = await prisma.product.findMany({ 
-        where: { 
+      const products = await prisma.product.findMany({
+        where: {
           category: {
-            name: category
-          }
+            name: category,
+          },
         },
-        select: { id: true }
+        select: { id: true },
       });
-      productIds = products.map(p => p.id);
+      productIds = products.map((p) => p.id);
       orderItemWhere.productId = { in: productIds };
     }
 
     const salesByProduct = await prisma.orderItem.groupBy({
-      by: ['productId'],
+      by: ["productId"],
       _sum: { quantity: true, price: true },
-      where: orderItemWhere
+      where: orderItemWhere,
     });
 
     // Get product/category info
     const productInfo = {};
     for (const item of salesByProduct) {
-      const product = await prisma.product.findUnique({ 
-        where: { id: item.productId }, 
-        select: { 
-          name: true, 
+      const product = await prisma.product.findUnique({
+        where: { id: item.productId },
+        select: {
+          name: true,
           category: {
-            select: { name: true }
-          }
-        } 
+            select: { name: true },
+          },
+        },
       });
       productInfo[item.productId] = product;
     }
 
     // Prepare CSV if requested
-    if (exportCsv === '1') {
-      const csvData = salesByProduct.map(item => ({
+    if (exportCsv === "1") {
+      const csvData = salesByProduct.map((item) => ({
         productId: item.productId,
         productName: productInfo[item.productId]?.name,
         category: productInfo[item.productId]?.category?.name,
         quantity: item._sum.quantity,
-        revenue: item._sum.price
+        revenue: item._sum.price,
       }));
-      const parser = new Json2csvParser({ fields: ['productId', 'productName', 'category', 'quantity', 'revenue'] });
+      const parser = new Json2csvParser({
+        fields: ["productId", "productName", "category", "quantity", "revenue"],
+      });
       const csv = parser.parse(csvData);
-      res.header('Content-Type', 'text/csv');
-      res.attachment('sales-analytics.csv');
+      res.header("Content-Type", "text/csv");
+      res.attachment("sales-analytics.csv");
       return res.send(csv);
     }
 
     // Group by day
     const dailySummary = {};
     for (const order of dailySales) {
-      const date = order.createdAt.toISOString().split('T')[0];
+      const date = order.createdAt.toISOString().split("T")[0];
       if (!dailySummary[date]) dailySummary[date] = { revenue: 0, orders: 0 };
       dailySummary[date].revenue += order.total;
       dailySummary[date].orders += 1;
@@ -272,41 +292,44 @@ router.get('/sales', requireAdmin, async (req, res) => {
 
     res.json({
       sales: {
-        dailySales: Object.entries(dailySummary).map(([date, data]) => ({ date, ...data })),
-        productSales: salesByProduct.map(item => ({
+        dailySales: Object.entries(dailySummary).map(([date, data]) => ({
+          date,
+          ...data,
+        })),
+        productSales: salesByProduct.map((item) => ({
           productId: item.productId,
           productName: productInfo[item.productId]?.name,
           category: productInfo[item.productId]?.category?.name,
           quantity: item._sum.quantity,
-          revenue: item._sum.price
-        }))
-      }
+          revenue: item._sum.price,
+        })),
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch sales analytics' });
+    res.status(500).json({ message: "Failed to fetch sales analytics" });
   }
 });
 
 // Get user analytics
-router.get('/users', requireAdmin, async (req, res) => {
+router.get("/users", requireAdmin, async (req, res) => {
   try {
     // User growth over time - aggregate by date
     const userGrowthRaw = await prisma.user.findMany({
       where: {
-        role: 'USER'
+        role: "USER",
       },
       select: {
-        createdAt: true
+        createdAt: true,
       },
       orderBy: {
-        createdAt: 'asc'
-      }
+        createdAt: "asc",
+      },
     });
 
     // Group by date
     const userGrowthByDate = {};
-    userGrowthRaw.forEach(user => {
-      const date = user.createdAt.toISOString().split('T')[0];
+    userGrowthRaw.forEach((user) => {
+      const date = user.createdAt.toISOString().split("T")[0];
       userGrowthByDate[date] = (userGrowthByDate[date] || 0) + 1;
     });
 
@@ -318,15 +341,15 @@ router.get('/users', requireAdmin, async (req, res) => {
       userGrowth.push({
         date,
         newUsers: count,
-        totalUsers: cumulative
+        totalUsers: cumulative,
       });
     });
 
     // User activity (users with orders)
     const activeUsers = await prisma.order.groupBy({
-      by: ['userId'],
+      by: ["userId"],
       _count: { id: true },
-      _sum: { total: true }
+      _sum: { total: true },
     });
 
     // Get user details for active users
@@ -338,15 +361,15 @@ router.get('/users', requireAdmin, async (req, res) => {
             firstName: true,
             lastName: true,
             email: true,
-            createdAt: true
-          }
+            createdAt: true,
+          },
         });
         return {
           ...userInfo,
           orderCount: user._count.id,
-          totalSpent: user._sum.total || 0
+          totalSpent: user._sum.total || 0,
         };
-      })
+      }),
     );
 
     // Top customers
@@ -357,24 +380,24 @@ router.get('/users', requireAdmin, async (req, res) => {
     res.json({
       users: {
         userGrowth,
-        totalUsers: await prisma.user.count({ where: { role: 'USER' } }),
+        totalUsers: await prisma.user.count({ where: { role: "USER" } }),
         activeUsers: activeUserDetails.length,
-        topCustomers
-      }
+        topCustomers,
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch user analytics' });
+    res.status(500).json({ message: "Failed to fetch user analytics" });
   }
 });
 
 // Get product analytics
-router.get('/products', requireAdmin, async (req, res) => {
+router.get("/products", requireAdmin, async (req, res) => {
   try {
     // Product performance
     const productPerformance = await prisma.orderItem.groupBy({
-      by: ['productId'],
+      by: ["productId"],
       _sum: { quantity: true, price: true },
-      _count: { id: true }
+      _count: { id: true },
     });
 
     // Get product details
@@ -387,45 +410,47 @@ router.get('/products', requireAdmin, async (req, res) => {
             name: true,
             price: true,
             category: {
-              select: { name: true }
+              select: { name: true },
             },
             images: true,
-            stock: true
-          }
+            _count: AVAILABLE_KEYS,
+          },
         });
         return {
           ...product,
-          category: product?.category?.name || 'Uncategorized',
+          _count: undefined,
+          stock: product?._count?.gameKeys ?? 0,
+          category: product?.category?.name || "Uncategorized",
           totalSold: item._sum.quantity,
           totalRevenue: item._sum.price,
-          orderCount: item._count.id
+          orderCount: item._count.id,
         };
-      })
+      }),
     );
 
-    // Low stock products
-    const lowStockProducts = await prisma.product.findMany({
-      where: {
-        stock: {
-          lte: 10
-        }
-      },
+    // Low stock products. Prisma cannot filter on a relation _count, so fetch
+    // the counts and narrow in JS - the catalogue is small enough for this.
+    const productsWithKeyCounts = await prisma.product.findMany({
+      where: { isActive: true },
       select: {
         id: true,
         name: true,
-        stock: true,
         price: true,
         category: {
-          select: { name: true }
-        }
-      }
+          select: { name: true },
+        },
+        _count: AVAILABLE_KEYS,
+      },
     });
 
-    // Transform low stock products to include category name
-    const lowStockProductsWithCategory = lowStockProducts.map(product => ({
-      ...product,
-      category: product.category?.name || 'Uncategorized'
-    }));
+    const lowStockProductsWithCategory = productsWithKeyCounts
+      .map(({ _count, ...product }) => ({
+        ...product,
+        stock: _count.gameKeys,
+        category: product.category?.name || "Uncategorized",
+      }))
+      .filter((product) => product.stock <= LOW_STOCK_THRESHOLD)
+      .sort((a, b) => a.stock - b.stock);
 
     // Category performance
     const categoryPerformance = productDetails.reduce((acc, product) => {
@@ -440,19 +465,23 @@ router.get('/products', requireAdmin, async (req, res) => {
 
     res.json({
       products: {
-        productPerformance: productDetails.sort((a, b) => b.totalSold - a.totalSold),
+        productPerformance: productDetails.sort(
+          (a, b) => b.totalSold - a.totalSold,
+        ),
         lowStockProducts: lowStockProductsWithCategory,
-        categoryPerformance: Object.entries(categoryPerformance).map(([category, data]) => ({
-          category,
-          totalSold: data.quantity,
-          totalRevenue: data.revenue,
-          productCount: data.products
-        }))
-      }
+        categoryPerformance: Object.entries(categoryPerformance).map(
+          ([category, data]) => ({
+            category,
+            totalSold: data.quantity,
+            totalRevenue: data.revenue,
+            productCount: data.products,
+          }),
+        ),
+      },
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch product analytics' });
+    res.status(500).json({ message: "Failed to fetch product analytics" });
   }
 });
 
-export default router; 
+export default router;
