@@ -199,6 +199,16 @@ export default function ProductDetail() {
                 <span className="text-2xl font-bold text-neutral-900">${product.price}</span>
               </div>
               <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">{product.category?.name || 'General'}</span>
+              {product.platform && (
+                <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-1 rounded-full">
+                  {product.platform}
+                </span>
+              )}
+              {product.region && (
+                <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">
+                  {product.region}
+                </span>
+              )}
             </div>
 
             {/* Rating */}
@@ -224,20 +234,50 @@ export default function ProductDetail() {
             {/* Description */}
             <p className="text-base text-neutral-700 mb-8 leading-relaxed">{product.description}</p>
             
-            {/* Features - Show if available */}
-            {product.features && product.features.length > 0 && (
-              <div className="mb-8">
-                <h3 className="font-semibold text-neutral-900 mb-4">Key Features</h3>
-                <ul className="space-y-2">
-                  {product.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center text-neutral-600 text-sm">
-                      <span className="w-2 h-2 bg-neutral-400 rounded-full mr-3"></span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {/* Game details */}
+            <div className="mb-8">
+              <h3 className="font-semibold text-neutral-900 mb-4">Details</h3>
+              <dl className="grid grid-cols-2 gap-y-3 text-sm">
+                <dt className="text-neutral-500">Platform</dt>
+                <dd className="text-neutral-900 font-medium">{product.platform || '-'}</dd>
+
+                <dt className="text-neutral-500">Region</dt>
+                <dd className="text-neutral-900 font-medium">{product.region || '-'}</dd>
+
+                {product.developer && (
+                  <>
+                    <dt className="text-neutral-500">Developer</dt>
+                    <dd className="text-neutral-900 font-medium">{product.developer}</dd>
+                  </>
+                )}
+
+                {product.publisher && (
+                  <>
+                    <dt className="text-neutral-500">Publisher</dt>
+                    <dd className="text-neutral-900 font-medium">{product.publisher}</dd>
+                  </>
+                )}
+
+                {product.releaseDate && (
+                  <>
+                    <dt className="text-neutral-500">Released</dt>
+                    <dd className="text-neutral-900 font-medium">
+                      {new Date(product.releaseDate).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        // Release dates are stored at midnight UTC; without this a
+                        // negative-offset timezone renders the previous day.
+                        timeZone: 'UTC'
+                      })}
+                    </dd>
+                  </>
+                )}
+              </dl>
+              <p className="text-xs text-neutral-500 mt-4">
+                Delivered as a redeemable {product.platform || 'store'} key. Check the region before buying.
+              </p>
+            </div>
           </div>
 
           {/* Sticky Add to Cart Section */}
@@ -246,7 +286,7 @@ export default function ProductDetail() {
             <div className="flex items-center gap-4">
               {product.stock > 0 ? (
                 <span className="text-xs text-success-700 bg-success-100 px-2 py-1 rounded-full font-medium">
-                  In Stock ({product.stock} available)
+                  In Stock ({product.stock} {product.stock === 1 ? 'key' : 'keys'})
                 </span>
               ) : (
                 <span className="text-xs text-error-700 bg-error-100 px-2 py-1 rounded-full font-medium">Out of Stock</span>

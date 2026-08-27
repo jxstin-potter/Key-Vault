@@ -5,6 +5,27 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
+/**
+ * Product.averageRating and Product.reviewCount are denormalised so the
+ * catalogue can sort by rating in SQL. They must be recomputed on every
+ * review write, or ?sort=rating silently drifts out of date.
+ */
+async function refreshProductRating(productId) {
+  const agg = await prisma.review.aggregate({
+    where: { productId },
+    _avg: { rating: true },
+    _count: { rating: true }
+  });
+
+  await prisma.product.update({
+    where: { id: productId },
+    data: {
+      averageRating: Math.round((agg._avg.rating ?? 0) * 10) / 10,
+      reviewCount: agg._count.rating
+    }
+  });
+}
+
 // Get reviews for a product
 router.get('/product/:productId', async (req, res) => {
   try {
@@ -99,6 +120,8 @@ router.post('/', authenticateToken, [
       }
     });
 
+    await refreshProductRating(productId);
+
     res.status(201).json({
       message: 'Review created successfully',
       review
@@ -147,6 +170,8 @@ router.put('/:id', authenticateToken, [
       }
     });
 
+    await refreshProductRating(updatedReview.productId);
+
     res.json({
       message: 'Review updated successfully',
       review: updatedReview
@@ -176,6 +201,8 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     await prisma.review.delete({
       where: { id }
     });
+
+    await refreshProductRating(review.productId);
 
     res.json({ message: 'Review deleted successfully' });
   } catch (error) {

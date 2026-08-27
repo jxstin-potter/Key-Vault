@@ -12,6 +12,19 @@ const router = express.Router();
 // game keys. Surfaced as `stock` so the client-facing shape is unchanged.
 const AVAILABLE_KEYS = { select: { gameKeys: { where: { status: 'AVAILABLE' } } } };
 
+// Maps the sort values used in the UI onto Prisma orderBy clauses. The
+// homepage has always linked to ?sort=rating and ?sort=newest, neither of
+// which the old name/price/createdAt whitelist accepted.
+const SORT_OPTIONS = {
+  name: { name: 'asc' },
+  price: { price: 'asc' },
+  'price-desc': { price: 'desc' },
+  rating: { averageRating: 'desc' },
+  newest: { createdAt: 'desc' },
+  releaseDate: { releaseDate: 'desc' },
+  popular: { reviews: { _count: 'desc' } }
+};
+
 const withStock = (product) => {
   if (!product) return product;
   const { _count, ...rest } = product;
@@ -27,7 +40,11 @@ router.get('/', [
   query('minPrice').optional().isFloat({ min: 0 }).toFloat(),
   query('maxPrice').optional().isFloat({ min: 0 }).toFloat(),
   query('sortBy').optional().isIn(['name', 'price', 'createdAt']),
-  query('sortOrder').optional().isIn(['asc', 'desc'])
+  query('sortOrder').optional().isIn(['asc', 'desc']),
+  query('sort').optional().isIn(Object.keys(SORT_OPTIONS)),
+  query('platform').optional().isIn(PLATFORMS),
+  query('region').optional().isIn(REGIONS),
+  query('inStock').optional().isBoolean().toBoolean()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -43,7 +60,11 @@ router.get('/', [
       minPrice,
       maxPrice,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
+      sort,
+      platform,
+      region,
+      inStock
     } = req.query;
 
     const skip = (page - 1) * limit;
@@ -55,6 +76,15 @@ router.get('/', [
 
     if (category) {
       where.category = { name: category };
+    }
+
+    if (platform) where.platform = platform;
+    if (region) where.region = region;
+
+    // Prisma cannot filter on a relation _count, but it can filter on the
+    // relation itself, which is exactly the semantics we want here.
+    if (inStock) {
+      where.gameKeys = { some: { status: 'AVAILABLE' } };
     }
 
     if (search) {
@@ -80,7 +110,7 @@ router.get('/', [
           },
           _count: AVAILABLE_KEYS
         },
-        orderBy: { [sortBy]: sortOrder },
+        orderBy: sort ? SORT_OPTIONS[sort] : { [sortBy]: sortOrder },
         skip,
         take: limit
       }),
