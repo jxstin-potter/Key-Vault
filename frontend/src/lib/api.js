@@ -68,8 +68,15 @@ api.interceptors.response.use(
       }
     }
 
-    // Handle server errors
-    if (response?.status >= 500) {
+    // Handle server errors.
+    //
+    // 503 is excluded on purpose. It is the one 5xx the API returns
+    // deliberately - "this feature is not configured" - and callers that can
+    // hit it give a far more useful message than a generic one. Toasting here
+    // as well stacked two errors on screen, with the vaguer one covering the
+    // specific one (checkout showed "Payments are not configured yet" behind
+    // "Server error. Please try again later.").
+    if (response?.status >= 500 && response.status !== 503) {
       toast.error('Server error. Please try again later.');
     }
 
