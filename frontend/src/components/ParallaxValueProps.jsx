@@ -49,7 +49,7 @@ export default function ParallaxValueProps() {
       className="relative w-full py-20 bg-fixed bg-center bg-cover"
       style={{
         backgroundImage:
-          'linear-gradient(rgba(255,255,255,0.92),rgba(255,255,255,0.92)), url(https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=1200&q=80)'
+          'linear-gradient(rgba(14,18,16,0.92),rgba(14,18,16,0.92)), url(https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=1200&q=80)'
       }}
     >
       <div className="max-w-6xl mx-auto px-4">
@@ -62,7 +62,7 @@ export default function ParallaxValueProps() {
             return (
               <div
                 key={title}
-                className="flex flex-col items-center bg-white/80 rounded-xl shadow-soft p-6 text-center backdrop-blur-md border border-neutral-100"
+                className="flex flex-col items-center bg-neutral-50/80 rounded-xl shadow-soft p-6 text-center backdrop-blur-md border border-neutral-100"
               >
                 <IconComponent className="mb-4 text-primary-600" size={36} />
                 <h3 className="font-semibold text-neutral-900 mb-2 text-lg">{title}</h3>

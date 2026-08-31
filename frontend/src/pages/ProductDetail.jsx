@@ -145,7 +145,7 @@ export default function ProductDetail() {
           <h2 className="text-2xl font-bold mb-2">Product Not Found</h2>
           <button
             onClick={() => navigate(-1)}
-            className="mt-4 px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors"
+            className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             <ArrowLeft className="inline-block mr-2" size={18} /> Go Back
           </button>
@@ -156,14 +156,14 @@ export default function ProductDetail() {
 
   return (
     <div className="min-h-screen bg-neutral-50 py-12 px-4">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 bg-white rounded-2xl shadow-none md:shadow-large p-0 md:p-12">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 bg-neutral-100 rounded-2xl shadow-none md:shadow-large p-0 md:p-12">
         {/* Product Image */}
         <div className="flex flex-col items-center justify-center md:items-start md:justify-start">
           <img
             src={product.images?.[0] || product.image}
             alt={product.name}
             className="w-full max-w-md rounded-xl object-cover mb-8 md:mb-0 md:sticky md:top-24 shadow-none"
-            style={{ aspectRatio: '3/4', background: '#f4f4f4' }}
+            style={{ aspectRatio: '3/4', background: '#171d1a' }}
           />
         </div>
 
@@ -281,7 +281,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Sticky Add to Cart Section */}
-          <div className="mt-8 md:mt-0 md:sticky md:bottom-12 bg-white/80 md:bg-white/90 md:backdrop-blur-md rounded-xl md:shadow-soft p-6 flex flex-col gap-4 border border-neutral-100">
+          <div className="mt-8 md:mt-0 md:sticky md:bottom-12 bg-neutral-50/80 md:bg-neutral-50/90 md:backdrop-blur-md rounded-xl md:shadow-soft p-6 flex flex-col gap-4 border border-neutral-100">
             {/* Stock Status */}
             <div className="flex items-center gap-4">
               {product.stock > 0 ? (
@@ -366,7 +366,7 @@ export default function ProductDetail() {
                   className={cn(
                     "w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-lg",
                     product.stock > 0 && !isLoading
-                      ? "bg-neutral-900 text-white hover:bg-neutral-800 shadow-none hover:shadow-md"
+                      ? "bg-primary-600 text-white hover:bg-primary-700 shadow-none hover:shadow-md"
                       : "bg-neutral-200 text-neutral-500 cursor-not-allowed"
                   )}
                 >
@@ -411,7 +411,7 @@ export default function ProductDetail() {
       {/* Floating Cart Preview */}
       {getItemCount() > 0 && showCartPreview && (
         <div className="fixed bottom-6 right-6 z-50">
-          <div className="bg-white rounded-xl shadow-large border border-neutral-200 p-4 max-w-sm">
+          <div className="bg-neutral-100 rounded-xl shadow-large border border-neutral-200 p-4 max-w-sm">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-neutral-900">Cart Preview</h3>
               <button

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -12,62 +12,67 @@ import {
   Line,
   PieChart,
   Pie,
-  Cell
-} from 'recharts';
+  Cell,
+} from "recharts";
 import {
   Users,
   ShoppingCart,
   DollarSign,
   Package,
-  RefreshCw
-} from 'lucide-react';
-import { api } from '../lib/api';
+  RefreshCw,
+} from "lucide-react";
+import { api } from "../lib/api";
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
-const StatCard = ({ title, value, icon, change, color = 'blue' }) => {
+const StatCard = ({ title, value, icon, change, color = "blue" }) => {
   const IconComponent = icon;
   return (
-  <div className="bg-white rounded-lg shadow p-6">
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-gray-600">{title}</p>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        {change !== undefined && (
-          <p className={`text-sm ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {change >= 0 ? '+' : ''}{change}% from last month
-          </p>
-        )}
-      </div>
-      <div className={`p-3 rounded-full bg-${color}-100`}>
-        {IconComponent && <IconComponent className={`w-6 h-6 text-${color}-600`} />}
+    <div className="bg-neutral-100 rounded-lg shadow p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-neutral-600">{title}</p>
+          <p className="text-2xl font-bold text-neutral-900">{value}</p>
+          {change !== undefined && (
+            <p
+              className={`text-sm ${change >= 0 ? "text-green-600" : "text-red-600"}`}
+            >
+              {change >= 0 ? "+" : ""}
+              {change}% from last month
+            </p>
+          )}
+        </div>
+        <div className={`p-3 rounded-full bg-${color}-100`}>
+          {IconComponent && (
+            <IconComponent className={`w-6 h-6 text-${color}-600`} />
+          )}
+        </div>
       </div>
     </div>
-  </div>
   );
 };
 
 const TABS = [
-  { key: 'overview', label: 'Overview' },
-  { key: 'sales', label: 'Sales Analytics' },
-  { key: 'users', label: 'User Analytics' },
-  { key: 'products', label: 'Product Analytics' }
+  { key: "overview", label: "Overview" },
+  { key: "sales", label: "Sales Analytics" },
+  { key: "users", label: "User Analytics" },
+  { key: "products", label: "Product Analytics" },
 ];
 
 const AdminAnalytics = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   // Overview analytics state
   const [overview, setOverview] = useState(null);
   const [overviewLoading, setOverviewLoading] = useState(true);
   const [overviewError, setOverviewError] = useState(null);
-  
+
   // Sales analytics state
   const [sales, setSales] = useState(null);
   const [salesLoading, setSalesLoading] = useState(false);
   const [salesError, setSalesError] = useState(null);
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [category, setCategory] = useState('');
-  const [productId, setProductId] = useState('');
+  const [dateRange, setDateRange] = useState({ start: "", end: "" });
+  const [category, setCategory] = useState("");
+  const [productId, setProductId] = useState("");
   const [categories, setCategories] = useState([]);
   const [productsList, setProductsList] = useState([]);
 
@@ -75,7 +80,7 @@ const AdminAnalytics = () => {
   const [users, setUsers] = useState(null);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState(null);
-  
+
   // Products analytics state
   const [products, setProducts] = useState(null);
   const [productsLoading, setProductsLoading] = useState(false);
@@ -86,8 +91,8 @@ const AdminAnalytics = () => {
     const fetchMeta = async () => {
       try {
         const [catRes, prodRes] = await Promise.all([
-          api.get('/categories'),
-          api.get('/products')
+          api.get("/categories"),
+          api.get("/products"),
         ]);
         setCategories(catRes.data.categories || catRes.data || []);
         setProductsList(prodRes.data.products || prodRes.data || []);
@@ -102,11 +107,11 @@ const AdminAnalytics = () => {
   const fetchSales = async (params = {}) => {
     try {
       setSalesLoading(true);
-      const res = await api.get('/analytics/sales', { params });
+      const res = await api.get("/analytics/sales", { params });
       setSales(res.data.sales);
       setSalesError(null);
     } catch {
-      setSalesError('Failed to fetch sales analytics');
+      setSalesError("Failed to fetch sales analytics");
     } finally {
       setSalesLoading(false);
     }
@@ -116,11 +121,11 @@ const AdminAnalytics = () => {
   const fetchUsers = async () => {
     try {
       setUsersLoading(true);
-      const res = await api.get('/analytics/users');
+      const res = await api.get("/analytics/users");
       setUsers(res.data.users);
       setUsersError(null);
     } catch {
-      setUsersError('Failed to fetch user analytics');
+      setUsersError("Failed to fetch user analytics");
     } finally {
       setUsersLoading(false);
     }
@@ -130,11 +135,11 @@ const AdminAnalytics = () => {
   const fetchOverview = async () => {
     try {
       setOverviewLoading(true);
-      const res = await api.get('/analytics/overview');
+      const res = await api.get("/analytics/overview");
       setOverview(res.data.overview);
       setOverviewError(null);
     } catch {
-      setOverviewError('Failed to fetch overview analytics');
+      setOverviewError("Failed to fetch overview analytics");
     } finally {
       setOverviewLoading(false);
     }
@@ -144,11 +149,11 @@ const AdminAnalytics = () => {
   const fetchProducts = async () => {
     try {
       setProductsLoading(true);
-      const res = await api.get('/analytics/products');
+      const res = await api.get("/analytics/products");
       setProducts(res.data.products);
       setProductsError(null);
     } catch {
-      setProductsError('Failed to fetch product analytics');
+      setProductsError("Failed to fetch product analytics");
     } finally {
       setProductsLoading(false);
     }
@@ -171,9 +176,9 @@ const AdminAnalytics = () => {
 
   // Fetch data when tab changes
   useEffect(() => {
-    if (activeTab === 'users' && !users) {
+    if (activeTab === "users" && !users) {
       fetchUsers();
-    } else if (activeTab === 'products' && !products) {
+    } else if (activeTab === "products" && !products) {
       fetchProducts();
     }
   }, [activeTab, users, products]);
@@ -187,50 +192,91 @@ const AdminAnalytics = () => {
     if (productId) params.productId = productId;
     params.exportCsv = 1;
     const query = new URLSearchParams(params).toString();
-    window.open(`/api/analytics/sales?${query}`, '_blank');
+    window.open(`/api/analytics/sales?${query}`, "_blank");
   };
 
   // Format helpers
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
     }).format(amount);
   };
-  const formatNumber = (num) => new Intl.NumberFormat('en-US').format(num);
+  const formatNumber = (num) => new Intl.NumberFormat("en-US").format(num);
 
   // UI for filters
   const Filters = (
     <div className="flex flex-wrap gap-4 items-end mb-4">
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
-        <input type="date" className="border rounded px-2 py-1" value={dateRange.start} onChange={e => setDateRange(r => ({ ...r, start: e.target.value }))} />
+        <label className="block text-xs font-medium text-neutral-600 mb-1">
+          Start Date
+        </label>
+        <input
+          type="date"
+          className="border rounded px-2 py-1"
+          value={dateRange.start}
+          onChange={(e) =>
+            setDateRange((r) => ({ ...r, start: e.target.value }))
+          }
+        />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">End Date</label>
-        <input type="date" className="border rounded px-2 py-1" value={dateRange.end} onChange={e => setDateRange(r => ({ ...r, end: e.target.value }))} />
+        <label className="block text-xs font-medium text-neutral-600 mb-1">
+          End Date
+        </label>
+        <input
+          type="date"
+          className="border rounded px-2 py-1"
+          value={dateRange.end}
+          onChange={(e) => setDateRange((r) => ({ ...r, end: e.target.value }))}
+        />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
-        <select className="border rounded px-2 py-1" value={category} onChange={e => setCategory(e.target.value)}>
+        <label className="block text-xs font-medium text-neutral-600 mb-1">
+          Category
+        </label>
+        <select
+          className="border rounded px-2 py-1"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
           <option value="">All</option>
-          {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.name}>
+              {cat.name}
+            </option>
+          ))}
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Product</label>
-        <select className="border rounded px-2 py-1" value={productId} onChange={e => setProductId(e.target.value)}>
+        <label className="block text-xs font-medium text-neutral-600 mb-1">
+          Product
+        </label>
+        <select
+          className="border rounded px-2 py-1"
+          value={productId}
+          onChange={(e) => setProductId(e.target.value)}
+        >
           <option value="">All</option>
-          {productsList.map(prod => <option key={prod.id} value={prod.id}>{prod.name}</option>)}
+          {productsList.map((prod) => (
+            <option key={prod.id} value={prod.id}>
+              {prod.name}
+            </option>
+          ))}
         </select>
       </div>
-      <button onClick={handleExportCSV} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Export CSV</button>
+      <button
+        onClick={handleExportCSV}
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+      >
+        Export CSV
+      </button>
     </div>
   );
 
   // Tab content
   let tabContent = null;
-  if (activeTab === 'overview') {
+  if (activeTab === "overview") {
     tabContent = (
       <div>
         {overviewLoading ? (
@@ -280,23 +326,38 @@ const AdminAnalytics = () => {
             </div>
 
             {/* Top Products */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Selling Products</h3>
+            <div className="bg-neutral-100 rounded-lg shadow p-6 mb-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                Top Selling Products
+              </h3>
               <div className="space-y-3">
                 {overview.topProducts.map((product, index) => (
-                  <div key={product.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between p-3 bg-neutral-100 rounded-lg"
+                  >
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-medium text-sm">{index + 1}</span>
+                        <span className="text-blue-600 font-medium text-sm">
+                          {index + 1}
+                        </span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{product.name}</p>
-                        <p className="text-sm text-gray-600">{product.category}</p>
+                        <p className="font-medium text-neutral-900">
+                          {product.name}
+                        </p>
+                        <p className="text-sm text-neutral-600">
+                          {product.category}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatNumber(product.totalSold)} sold</p>
-                      <p className="text-sm text-gray-600">{formatCurrency(product.price)} each</p>
+                      <p className="font-medium text-neutral-900">
+                        {formatNumber(product.totalSold)} sold
+                      </p>
+                      <p className="text-sm text-neutral-600">
+                        {formatCurrency(product.price)} each
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -304,30 +365,41 @@ const AdminAnalytics = () => {
             </div>
 
             {/* Recent Orders */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Orders</h3>
+            <div className="bg-neutral-100 rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                Recent Orders
+              </h3>
               <div className="space-y-3">
                 {overview.recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={order.id}
+                    className="flex items-center justify-between p-3 bg-neutral-100 rounded-lg"
+                  >
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-neutral-900">
                         {order.user.firstName} {order.user.lastName}
                       </p>
-                      <p className="text-sm text-gray-600">{order.user.email}</p>
+                      <p className="text-sm text-neutral-600">
+                        {order.user.email}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatCurrency(order.total)}</p>
-                      <p className="text-sm text-gray-600">{order.status}</p>
+                      <p className="font-medium text-neutral-900">
+                        {formatCurrency(order.total)}
+                      </p>
+                      <p className="text-sm text-neutral-600">{order.status}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           </>
-        ) : <div>No overview data available</div>}
+        ) : (
+          <div>No overview data available</div>
+        )}
       </div>
     );
-  } else if (activeTab === 'sales') {
+  } else if (activeTab === "sales") {
     tabContent = (
       <div>
         {Filters}
@@ -348,8 +420,10 @@ const AdminAnalytics = () => {
         ) : sales ? (
           <>
             {/* Daily Sales Chart */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Sales</h3>
+            <div className="bg-neutral-100 rounded-lg shadow p-6 mb-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                Daily Sales
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={sales.dailySales}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -357,14 +431,26 @@ const AdminAnalytics = () => {
                   <YAxis />
                   <Tooltip formatter={formatCurrency} />
                   <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} />
-                  <Line type="monotone" dataKey="orders" stroke="#10B981" strokeWidth={2} />
+                  <Line
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#3B82F6"
+                    strokeWidth={2}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="orders"
+                    stroke="#10B981"
+                    strokeWidth={2}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
             {/* Product Sales Chart */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Sales</h3>
+            <div className="bg-neutral-100 rounded-lg shadow p-6 mb-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                Product Sales
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={sales.productSales}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -378,10 +464,12 @@ const AdminAnalytics = () => {
               </ResponsiveContainer>
             </div>
           </>
-        ) : <div>No sales data available</div>}
+        ) : (
+          <div>No sales data available</div>
+        )}
       </div>
     );
-  } else if (activeTab === 'users') {
+  } else if (activeTab === "users") {
     tabContent = (
       <div>
         {usersLoading ? (
@@ -423,8 +511,10 @@ const AdminAnalytics = () => {
             </div>
 
             {/* User Growth Chart */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">User Growth Over Time</h3>
+            <div className="bg-neutral-100 rounded-lg shadow p-6 mb-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                User Growth Over Time
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={users.userGrowth}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -432,49 +522,64 @@ const AdminAnalytics = () => {
                   <YAxis />
                   <Tooltip formatter={formatNumber} />
                   <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="newUsers" 
-                    stroke="#3B82F6" 
+                  <Line
+                    type="monotone"
+                    dataKey="newUsers"
+                    stroke="#3B82F6"
                     strokeWidth={2}
-                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                    dot={{ fill: "#3B82F6", strokeWidth: 2, r: 4 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
             {/* Top Customers */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Customers</h3>
+            <div className="bg-neutral-100 rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                Top Customers
+              </h3>
               <div className="space-y-3">
                 {users.topCustomers.map((customer, index) => (
-                  <div key={customer.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={customer.id || index}
+                    className="flex items-center justify-between p-3 bg-neutral-100 rounded-lg"
+                  >
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-blue-600 font-medium text-sm">
-                          {customer.firstName?.charAt(0) || customer.email?.charAt(0) || 'U'}
+                          {customer.firstName?.charAt(0) ||
+                            customer.email?.charAt(0) ||
+                            "U"}
                         </span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-neutral-900">
                           {customer.firstName} {customer.lastName}
                         </p>
-                        <p className="text-sm text-gray-600">{customer.email}</p>
+                        <p className="text-sm text-neutral-600">
+                          {customer.email}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatCurrency(customer.totalSpent)}</p>
-                      <p className="text-sm text-gray-600">{customer.orderCount} orders</p>
+                      <p className="font-medium text-neutral-900">
+                        {formatCurrency(customer.totalSpent)}
+                      </p>
+                      <p className="text-sm text-neutral-600">
+                        {customer.orderCount} orders
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           </>
-        ) : <div>No user data available</div>}
+        ) : (
+          <div>No user data available</div>
+        )}
       </div>
     );
-  } else if (activeTab === 'products') {
+  } else if (activeTab === "products") {
     tabContent = (
       <div>
         {productsLoading ? (
@@ -494,8 +599,10 @@ const AdminAnalytics = () => {
         ) : products ? (
           <>
             {/* Product Performance Chart */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Selling Products</h3>
+            <div className="bg-neutral-100 rounded-lg shadow p-6 mb-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                Top Selling Products
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={products.productPerformance.slice(0, 10)}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -509,8 +616,10 @@ const AdminAnalytics = () => {
             </div>
 
             {/* Category Performance */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Performance</h3>
+            <div className="bg-neutral-100 rounded-lg shadow p-6 mb-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                Category Performance
+              </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={products.categoryPerformance}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -524,28 +633,45 @@ const AdminAnalytics = () => {
             </div>
 
             {/* Low Stock Alert */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Low Stock Alert</h3>
+            <div className="bg-neutral-100 rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+                Low Stock Alert
+              </h3>
               <div className="space-y-3">
                 {products.lowStockProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200"
+                  >
                     <div>
-                      <p className="font-medium text-gray-900">{product.name}</p>
-                      <p className="text-sm text-gray-600">{product.category}</p>
+                      <p className="font-medium text-neutral-900">
+                        {product.name}
+                      </p>
+                      <p className="text-sm text-neutral-600">
+                        {product.category}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-red-600">{product.stock} in stock</p>
-                      <p className="text-sm text-gray-600">{formatCurrency(product.price)}</p>
+                      <p className="font-medium text-red-600">
+                        {product.stock} in stock
+                      </p>
+                      <p className="text-sm text-neutral-600">
+                        {formatCurrency(product.price)}
+                      </p>
                     </div>
                   </div>
                 ))}
                 {products.lowStockProducts.length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No low stock products</p>
+                  <p className="text-neutral-500 text-center py-4">
+                    No low stock products
+                  </p>
                 )}
               </div>
             </div>
           </>
-        ) : <div>No product data available</div>}
+        ) : (
+          <div>No product data available</div>
+        )}
       </div>
     );
   }
@@ -555,8 +681,12 @@ const AdminAnalytics = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
-          <p className="text-gray-600">Monitor your store's performance and insights</p>
+          <h1 className="text-2xl font-bold text-neutral-900">
+            Analytics Dashboard
+          </h1>
+          <p className="text-neutral-600">
+            Monitor your store's performance and insights
+          </p>
         </div>
         <button
           onClick={() => fetchSales()}
@@ -568,10 +698,10 @@ const AdminAnalytics = () => {
       </div>
       {/* Tabs */}
       <div className="flex gap-2 border-b mb-4">
-        {TABS.map(tab => (
+        {TABS.map((tab) => (
           <button
             key={tab.key}
-            className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === tab.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-600 hover:text-blue-700'}`}
+            className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === tab.key ? "border-blue-600 text-blue-700" : "border-transparent text-neutral-600 hover:text-blue-700"}`}
             onClick={() => setActiveTab(tab.key)}
           >
             {tab.label}
@@ -584,4 +714,4 @@ const AdminAnalytics = () => {
   );
 };
 
-export default AdminAnalytics; 
+export default AdminAnalytics;

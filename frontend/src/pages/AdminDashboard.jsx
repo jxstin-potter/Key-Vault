@@ -77,7 +77,7 @@ export default function AdminDashboard() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 w-full">
-        <div className="bg-white rounded-xl p-6 shadow-soft">
+        <div className="bg-neutral-100 rounded-xl p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-600">Total Revenue</p>
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-soft">
+        <div className="bg-neutral-100 rounded-xl p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-600">Total Orders</p>
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-soft">
+        <div className="bg-neutral-100 rounded-xl p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-600">Total Products</p>
@@ -134,7 +134,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-soft">
+        <div className="bg-neutral-100 rounded-xl p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-600">Total Customers</p>
@@ -158,7 +158,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 w-full">
         <Link
           to="/admin/products"
-          className="bg-white rounded-xl p-6 shadow-soft hover:shadow-medium transition-all duration-200 group"
+          className="bg-neutral-100 rounded-xl p-6 shadow-soft hover:shadow-medium transition-all duration-200 group"
         >
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center group-hover:bg-primary-200 transition-colors">
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
 
         <Link
           to="/admin/orders"
-          className="bg-white rounded-xl p-6 shadow-soft hover:shadow-medium transition-all duration-200 group"
+          className="bg-neutral-100 rounded-xl p-6 shadow-soft hover:shadow-medium transition-all duration-200 group"
         >
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center group-hover:bg-secondary-200 transition-colors">
@@ -188,7 +188,7 @@ export default function AdminDashboard() {
 
         <Link
           to="/admin/customers"
-          className="bg-white rounded-xl p-6 shadow-soft hover:shadow-medium transition-all duration-200 group"
+          className="bg-neutral-100 rounded-xl p-6 shadow-soft hover:shadow-medium transition-all duration-200 group"
         >
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center group-hover:bg-success-200 transition-colors">
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
 
         <Link
           to="/admin/settings"
-          className="bg-white rounded-xl p-6 shadow-soft hover:shadow-medium transition-all duration-200 group"
+          className="bg-neutral-100 rounded-xl p-6 shadow-soft hover:shadow-medium transition-all duration-200 group"
         >
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-accent-100 rounded-lg flex items-center justify-center group-hover:bg-accent-200 transition-colors">
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
       {/* Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
         {/* Recent Orders */}
-        <div className="bg-white rounded-xl shadow-soft p-6">
+        <div className="bg-neutral-100 rounded-xl shadow-soft p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-neutral-900">Recent Orders</h2>
             <Link
@@ -253,7 +253,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Top Products */}
-        <div className="bg-white rounded-xl shadow-soft p-6">
+        <div className="bg-neutral-100 rounded-xl shadow-soft p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-neutral-900">Top Products</h2>
             <Link

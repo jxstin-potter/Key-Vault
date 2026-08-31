@@ -112,7 +112,7 @@ export default function Products() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {[...Array(12)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-neutral-200 overflow-hidden animate-pulse">
+              <div key={i} className="bg-neutral-100 rounded-xl border border-neutral-200 overflow-hidden animate-pulse">
                 <div className="aspect-[2/3] bg-neutral-200"></div>
                 <div className="p-3 space-y-2">
                   <div className="h-3 bg-neutral-200 rounded w-3/4"></div>
@@ -130,7 +130,7 @@ export default function Products() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <div className="bg-white border-b border-neutral-200">
+      <div className="bg-neutral-100 border-b border-neutral-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h1 className="text-3xl font-bold text-neutral-900">Games</h1>
           <p className="text-neutral-600 mt-1">Instant-delivery keys for every major platform</p>
@@ -139,7 +139,7 @@ export default function Products() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-soft p-6 mb-8">
+        <div className="bg-neutral-100 rounded-xl shadow-soft p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
@@ -266,7 +266,7 @@ export default function Products() {
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-2 text-sm font-medium text-neutral-500 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-2 text-sm font-medium text-neutral-500 bg-neutral-100 border border-neutral-300 rounded-md hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
@@ -280,7 +280,7 @@ export default function Products() {
                     className={`px-3 py-2 text-sm font-medium rounded-md ${
                       currentPage === pageNum
                         ? 'bg-primary-600 text-white'
-                        : 'text-neutral-700 bg-white border border-neutral-300 hover:bg-neutral-50'
+                        : 'text-neutral-700 bg-neutral-100 border border-neutral-300 hover:bg-neutral-50'
                     }`}
                   >
                     {pageNum}
@@ -291,7 +291,7 @@ export default function Products() {
               <button
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-2 text-sm font-medium text-neutral-500 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-2 text-sm font-medium text-neutral-500 bg-neutral-100 border border-neutral-300 rounded-md hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>

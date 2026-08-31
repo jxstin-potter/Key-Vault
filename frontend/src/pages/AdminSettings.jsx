@@ -406,7 +406,7 @@ export default function AdminSettings() {
         >
           <span
             className={cn(
-              "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+              "inline-block h-4 w-4 transform rounded-full bg-neutral-100 transition-transform",
               securitySettings.twoFactorAuth ? "translate-x-6" : "translate-x-1"
             )}
           />
@@ -472,7 +472,7 @@ export default function AdminSettings() {
           >
             <span
               className={cn(
-                "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                "inline-block h-4 w-4 transform rounded-full bg-neutral-100 transition-transform",
                 value ? "translate-x-6" : "translate-x-1"
               )}
             />
@@ -498,7 +498,7 @@ export default function AdminSettings() {
         >
           <span
             className={cn(
-              "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+              "inline-block h-4 w-4 transform rounded-full bg-neutral-100 transition-transform",
               paymentSettings.stripeEnabled ? "translate-x-6" : "translate-x-1"
             )}
           />
@@ -546,7 +546,7 @@ export default function AdminSettings() {
         >
           <span
             className={cn(
-              "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+              "inline-block h-4 w-4 transform rounded-full bg-neutral-100 transition-transform",
               paymentSettings.paypalEnabled ? "translate-x-6" : "translate-x-1"
             )}
           />
@@ -714,7 +714,7 @@ export default function AdminSettings() {
         >
           <span
             className={cn(
-              "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+              "inline-block h-4 w-4 transform rounded-full bg-neutral-100 transition-transform",
               themeSettings.darkMode ? "translate-x-6" : "translate-x-1"
             )}
           />
@@ -752,7 +752,7 @@ export default function AdminSettings() {
         <p className="text-neutral-600 mt-2">Manage your store configuration and preferences</p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-soft overflow-hidden">
+      <div className="bg-neutral-100 rounded-xl shadow-soft overflow-hidden">
         {/* Tabs */}
         <div className="border-b border-neutral-200">
           <nav className="flex space-x-8 px-6" aria-label="Tabs">

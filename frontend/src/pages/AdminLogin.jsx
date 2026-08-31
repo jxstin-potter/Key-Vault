@@ -56,7 +56,7 @@ export default function AdminLogin() {
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-large p-8">
+        <div className="bg-neutral-100 rounded-2xl shadow-large p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div>

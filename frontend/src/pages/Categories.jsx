@@ -86,7 +86,7 @@ export default function Categories() {
             return (
               <button
                 key={category.id}
-                className="group bg-white rounded-2xl shadow-soft p-6 sm:p-8 flex flex-col items-center text-center border border-neutral-100 transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer w-full"
+                className="group bg-neutral-100 rounded-2xl shadow-soft p-6 sm:p-8 flex flex-col items-center text-center border border-neutral-100 transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer w-full"
                 onClick={() => navigate(`/products?category=${encodeURIComponent(category.name)}`)}
               >
                 <div className="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-full mb-4 bg-gradient-to-br from-primary-500 to-secondary-500 text-white group-hover:scale-110 transition-transform">

@@ -21,7 +21,7 @@ function ProductRow({ title, products, seeMoreLink, icon: Icon, isLoading, onAdd
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-soft animate-pulse">
+              <div key={i} className="bg-neutral-100 rounded-xl shadow-soft animate-pulse">
                 <div className="aspect-square bg-neutral-200 rounded-t-xl"></div>
                 <div className="p-4 space-y-3">
                   <div className="h-4 bg-neutral-200 rounded w-3/4"></div>
@@ -200,7 +200,7 @@ export default function Home() {
     <>
       <div ref={topRef} />
       {/* Hero Section */}
-      <section className="min-h-[80vh] w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary-50 via-neutral-50 to-secondary-50 relative overflow-hidden">
+      <section className="min-h-[80vh] w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 bg-neutral-50 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 left-20 w-72 h-72 bg-primary-500 rounded-full blur-3xl"></div>
@@ -214,9 +214,9 @@ export default function Home() {
               Instant delivery, 24/7
             </span>
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-4 sm:mb-6 tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-display text-neutral-900 mb-4 sm:mb-6 tracking-tight leading-tight">
             Game Keys,
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-600">
               Delivered Instantly
             </span>
           </h1>
@@ -227,7 +227,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/products"
-              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold rounded-lg hover:from-primary-700 hover:to-secondary-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               Browse Games
               <ArrowRight size={20} />
@@ -293,7 +293,7 @@ export default function Home() {
       {showBackToTop && (
         <button
           onClick={handleBackToTop}
-          className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white rounded-full shadow-lg p-3 transition-all duration-200 transform hover:scale-110"
+          className="fixed bottom-6 right-6 z-50 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg p-3 transition-all duration-200 transform hover:scale-110"
           aria-label="Back to top"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">

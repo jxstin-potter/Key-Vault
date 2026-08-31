@@ -77,7 +77,7 @@ export default function CheckoutSuccess() {
   return (
     <div className="min-h-screen bg-neutral-50 py-12 px-4">
       <div className="max-w-2xl mx-auto w-full">
-        <div className="bg-white rounded-xl shadow-soft p-8">
+        <div className="bg-neutral-100 rounded-xl shadow-soft p-8">
           {error ? (
             <div className="text-center">
               <AlertCircle size={48} className="mx-auto text-error-500 mb-4" />

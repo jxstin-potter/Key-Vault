@@ -63,7 +63,7 @@ export default function Cart() {
         </div>
 
         {items.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-soft p-12 text-center">
+          <div className="bg-neutral-100 rounded-xl shadow-soft p-12 text-center">
             <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <ShoppingBag size={32} className="text-neutral-400" />
             </div>
@@ -81,7 +81,7 @@ export default function Cart() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-soft p-6">
+              <div className="bg-neutral-100 rounded-xl shadow-soft p-6">
                 <h2 className="text-xl font-semibold text-neutral-900 mb-6">Cart Items</h2>
                 <div className="space-y-4">
                   {items.map(item => (
@@ -168,7 +168,7 @@ export default function Cart() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-soft p-6 sticky top-8">
+              <div className="bg-neutral-100 rounded-xl shadow-soft p-6 sticky top-8">
                 <h3 className="text-xl font-semibold text-neutral-900 mb-6">Order Summary</h3>
                 
                 <div className="space-y-4 mb-6">

@@ -1,24 +1,44 @@
-/* Import fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Import fonts - Cartridge theme: Chakra Petch for display, Manrope for body/UI */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* Tailwind directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Form controls fall back to native white/black rendering when no explicit
+   color classes are set, which the app relies on almost everywhere - only a
+   handful of inputs set their own bg/text color. Without this, every text
+   input and select renders as a bright white box against the dark theme. */
+@layer base {
+  /* Elements with no explicit text color class (table cells, some plain
+     <span>/<p> tags) inherit the browser's default black rather than a
+     theme color. Setting it on body means anything that doesn't override it
+     explicitly still reads correctly against the dark background. */
+  body {
+    @apply text-neutral-900;
+  }
+
+  input, textarea, select {
+    @apply bg-neutral-100 text-neutral-900;
+  }
+  input::placeholder, textarea::placeholder {
+    @apply text-neutral-500;
+  }
+}
+
 /* Custom component classes */
 @layer components {
   .btn-primary {
-    @apply bg-gradient-to-r from-primary-600 to-secondary-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:from-primary-700 hover:to-secondary-700 shadow-medium hover:shadow-large transform hover:-translate-y-0.5;
+    @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-primary-700 shadow-medium hover:shadow-large transform hover:-translate-y-0.5;
   }
-  
+
   .btn-outline {
     @apply border border-primary-600 text-primary-600 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-primary-600 hover:text-white;
   }
-  
+
   .text-gradient-primary {
-    @apply bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent;
   }
 
   /* Hide scrollbar utilities */

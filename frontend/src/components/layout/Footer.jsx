@@ -14,7 +14,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-neutral-900 text-white relative">
+    <footer className="bg-black text-white relative">
       {/* Top Gradient Bar */}
       <div className="h-1 w-full bg-gradient-to-r from-primary-500 to-secondary-500 absolute top-0 left-0" />
       <div className="container mx-auto px-4 py-12">
@@ -25,7 +25,7 @@ export default function Footer() {
               <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-sm">KV</span>
               </div>
-              <span className="text-xl font-bold text-gradient-primary">KeyVault</span>
+              <span className="text-xl font-bold font-display tracking-wide text-gradient-primary">KeyVault</span>
             </div>
             <p className="text-neutral-400 text-sm leading-relaxed">
               Genuine game keys for every major platform, delivered the moment
@@ -166,7 +166,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-neutral-800 mt-8 pt-8">
+        <div className="border-t border-white/10 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-neutral-400 text-sm">
               © {currentYear} KeyVault. All rights reserved.

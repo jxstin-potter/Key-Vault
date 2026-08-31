@@ -197,7 +197,7 @@ export default function AdminProducts() {
         </div>
 
         {/* Filters and Search */}
-      <div className="bg-white rounded-xl shadow-soft p-6">
+      <div className="bg-neutral-100 rounded-xl shadow-soft p-6">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
@@ -261,7 +261,7 @@ export default function AdminProducts() {
 
         {/* Bulk Actions */}
         {selectedProducts.length > 0 && (
-        <div className="bg-white rounded-xl shadow-soft p-4">
+        <div className="bg-neutral-100 rounded-xl shadow-soft p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-neutral-600">
                 {selectedProducts.length} product(s) selected
@@ -278,7 +278,7 @@ export default function AdminProducts() {
         )}
 
         {/* Products Table */}
-        <div className="bg-white rounded-xl shadow-soft overflow-hidden">
+        <div className="bg-neutral-100 rounded-xl shadow-soft overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
             <thead className="bg-neutral-50">

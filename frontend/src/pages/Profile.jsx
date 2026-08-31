@@ -59,7 +59,7 @@ export default function Profile() {
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white rounded-xl shadow-soft p-8">
+        <div className="bg-neutral-100 rounded-xl shadow-soft p-8">
           {/* Avatar Section */}
           <div className="text-center mb-8">
             <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4">

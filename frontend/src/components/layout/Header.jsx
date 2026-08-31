@@ -61,8 +61,8 @@ export default function Header() {
     <header className={cn(
       "sticky top-0 z-50 transition-all duration-300",
       isScrolled 
-        ? "bg-white/95 backdrop-blur-md shadow-medium border-b border-neutral-200" 
-        : "bg-white"
+        ? "bg-neutral-50/95 backdrop-blur-md shadow-medium border-b border-neutral-200" 
+        : "bg-neutral-100"
     )}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
@@ -71,7 +71,7 @@ export default function Header() {
             <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">KV</span>
             </div>
-            <span className="text-xl font-bold text-gradient-primary">KeyVault</span>
+            <span className="text-xl font-bold font-display tracking-wide text-gradient-primary">KeyVault</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -162,7 +162,7 @@ export default function Header() {
 
                 {/* Dropdown Menu */}
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-large border border-neutral-200 py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-neutral-100 rounded-lg shadow-large border border-neutral-200 py-2 z-50">
                     <div className="px-4 py-2 border-b border-neutral-200">
                       <p className="text-sm font-medium text-neutral-900">
                         {user?.firstName} {user?.lastName}

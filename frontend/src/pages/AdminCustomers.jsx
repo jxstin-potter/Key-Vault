@@ -128,7 +128,7 @@ export default function AdminCustomers() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 shadow-soft">
+        <div className="bg-neutral-100 rounded-xl p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-600">Total Customers</p>
@@ -140,7 +140,7 @@ export default function AdminCustomers() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-soft">
+        <div className="bg-neutral-100 rounded-xl p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-600">Active Customers</p>
@@ -154,7 +154,7 @@ export default function AdminCustomers() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-soft">
+        <div className="bg-neutral-100 rounded-xl p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-600">Total Revenue</p>
@@ -168,7 +168,7 @@ export default function AdminCustomers() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-soft">
+        <div className="bg-neutral-100 rounded-xl p-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-neutral-600">Avg Order Value</p>
@@ -188,7 +188,7 @@ export default function AdminCustomers() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl shadow-soft p-6 mb-6">
+      <div className="bg-neutral-100 rounded-xl shadow-soft p-6 mb-6">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -246,7 +246,7 @@ export default function AdminCustomers() {
         {filteredCustomers.map(customer => {
           const customerValue = getCustomerValue(customer.totalSpent);
           return (
-            <div key={customer.id} className="bg-white rounded-xl shadow-soft p-6 hover:shadow-medium transition-shadow">
+            <div key={customer.id} className="bg-neutral-100 rounded-xl shadow-soft p-6 hover:shadow-medium transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h3 className="font-semibold text-neutral-900">
@@ -334,8 +334,8 @@ export default function AdminCustomers() {
               <div className="absolute inset-0 bg-neutral-500 opacity-75"></div>
             </div>
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div className="inline-block align-bottom bg-neutral-100 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-neutral-100 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-medium text-neutral-900">
                     Customer Details

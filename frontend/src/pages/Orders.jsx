@@ -109,7 +109,7 @@ export default function Orders() {
     return (
       <div className="min-h-screen bg-neutral-50 py-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-soft p-8">
+          <div className="bg-neutral-100 rounded-xl shadow-soft p-8">
             <div className="animate-pulse">
               <div className="h-8 bg-neutral-200 rounded mb-4"></div>
               <div className="space-y-4">
@@ -155,7 +155,7 @@ export default function Orders() {
         </div>
 
         {orders.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-soft p-12 text-center">
+          <div className="bg-neutral-100 rounded-xl shadow-soft p-12 text-center">
             <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Package size={32} className="text-neutral-400" />
             </div>
@@ -173,7 +173,7 @@ export default function Orders() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Orders List */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-soft p-6">
+              <div className="bg-neutral-100 rounded-xl shadow-soft p-6">
                 <h2 className="text-xl font-semibold text-neutral-900 mb-6">Order History</h2>
                 <div className="space-y-4">
                   {orders.map(order => (
@@ -227,7 +227,7 @@ export default function Orders() {
             {/* Order Details */}
             <div className="lg:col-span-1">
               {selectedOrder ? (
-                <div className="bg-white rounded-xl shadow-soft p-6 sticky top-8">
+                <div className="bg-neutral-100 rounded-xl shadow-soft p-6 sticky top-8">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold text-neutral-900">Order Details</h3>
                     <span className="font-mono text-sm text-neutral-600">#{selectedOrder.id.slice(-8)}</span>
@@ -338,7 +338,7 @@ export default function Orders() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-xl shadow-soft p-6 sticky top-8">
+                <div className="bg-neutral-100 rounded-xl shadow-soft p-6 sticky top-8">
                   <div className="text-center text-neutral-500">
                     <Package size={48} className="mx-auto mb-4 text-neutral-300" />
                     <p className="text-sm">Select an order to view details</p>

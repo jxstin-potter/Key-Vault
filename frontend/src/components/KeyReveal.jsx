@@ -68,7 +68,7 @@ export default function KeyReveal({ code, platform }) {
           href={redeemUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-neutral-900 text-white text-sm font-medium hover:bg-neutral-800 transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors"
         >
           Redeem <ExternalLink size={14} />
         </a>

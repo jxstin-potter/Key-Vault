@@ -169,7 +169,7 @@ export default function AdminOrders() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl shadow-soft p-6 mb-6">
+      <div className="bg-neutral-100 rounded-xl shadow-soft p-6 mb-6">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1">
@@ -224,7 +224,7 @@ export default function AdminOrders() {
 
       {/* Bulk Actions */}
       {selectedOrders.length > 0 && (
-        <div className="bg-white rounded-xl shadow-soft p-4 mb-6">
+        <div className="bg-neutral-100 rounded-xl shadow-soft p-4 mb-6">
           <div className="flex items-center justify-between">
             <span className="text-sm text-neutral-600">
               {selectedOrders.length} order(s) selected
@@ -250,7 +250,7 @@ export default function AdminOrders() {
       )}
 
       {/* Orders Table */}
-      <div className="bg-white rounded-xl shadow-soft overflow-hidden">
+      <div className="bg-neutral-100 rounded-xl shadow-soft overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-neutral-50 border-b border-neutral-200">

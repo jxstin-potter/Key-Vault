@@ -58,7 +58,7 @@ export default function ProductCarousel({ products, onAddToCart }) {
           onClick={() => scroll('left')}
           disabled={isScrolling}
           aria-label="Scroll left"
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white text-primary-600 shadow-lg p-2 rounded-full border border-neutral-200 transition-all duration-200 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-neutral-100 text-primary-600 shadow-lg p-2 rounded-full border border-neutral-200 transition-all duration-200 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronLeft size={20} />
         </button>
@@ -70,7 +70,7 @@ export default function ProductCarousel({ products, onAddToCart }) {
           onClick={() => scroll('right')}
           disabled={isScrolling}
           aria-label="Scroll right"
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white text-primary-600 shadow-lg p-2 rounded-full border border-neutral-200 transition-all duration-200 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-neutral-100 text-primary-600 shadow-lg p-2 rounded-full border border-neutral-200 transition-all duration-200 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronRight size={20} />
         </button>

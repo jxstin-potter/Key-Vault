@@ -7,7 +7,7 @@ import { cn } from '../lib/utils';
 // use platform icons - we use text since no brand-icon library is installed.
 const PLATFORM_STYLES = {
   STEAM: 'bg-[#1b2838]',
-  EPIC: 'bg-neutral-900',
+  EPIC: 'bg-black',
   GOG: 'bg-[#8c2ce0]',
   XBOX: 'bg-[#107c10]',
   PLAYSTATION: 'bg-[#003791]',
@@ -38,7 +38,7 @@ export default function GameCard({ product, onAddToCart }) {
   };
 
   return (
-    <div className="group relative bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200">
+    <div className="group relative bg-neutral-100 rounded-xl border border-neutral-200 overflow-hidden hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200">
       <Link to={`/products/${product.id}`}>
         <div className="relative aspect-[2/3] overflow-hidden bg-neutral-100">
           {image && !imgFailed ? (
@@ -57,7 +57,7 @@ export default function GameCard({ product, onAddToCart }) {
           <span
             className={cn(
               'absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide text-white',
-              PLATFORM_STYLES[product.platform] || 'bg-neutral-700'
+              PLATFORM_STYLES[product.platform] || 'bg-black'
             )}
           >
             {product.platform}

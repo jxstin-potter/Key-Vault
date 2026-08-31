@@ -70,12 +70,12 @@ export default function MyKeys() {
         </div>
 
         {isLoading ? (
-          <div className="bg-white rounded-xl shadow-soft p-12 text-center">
+          <div className="bg-neutral-100 rounded-xl shadow-soft p-12 text-center">
             <Loader2 size={32} className="animate-spin mx-auto text-neutral-400 mb-4" />
             <p className="text-neutral-600">Loading your keys…</p>
           </div>
         ) : orders.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-soft p-12 text-center">
+          <div className="bg-neutral-100 rounded-xl shadow-soft p-12 text-center">
             <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <KeyRound size={32} className="text-neutral-400" />
             </div>
@@ -94,7 +94,7 @@ export default function MyKeys() {
         ) : (
           <div className="space-y-6">
             {orders.map((order) => (
-              <div key={order.orderId} className="bg-white rounded-xl shadow-soft p-6">
+              <div key={order.orderId} className="bg-neutral-100 rounded-xl shadow-soft p-6">
                 <div className="flex items-center justify-between mb-4 pb-4 border-b border-neutral-100">
                   <div>
                     <p className="text-sm text-neutral-600">Order</p>

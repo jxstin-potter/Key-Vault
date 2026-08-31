@@ -43,7 +43,7 @@ export default function Checkout() {
     return (
       <div className="min-h-screen bg-neutral-50 py-12 px-4">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-xl shadow-soft p-12 text-center">
+          <div className="bg-neutral-100 rounded-xl shadow-soft p-12 text-center">
             <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <ShoppingBag size={32} className="text-neutral-400" />
             </div>
@@ -76,7 +76,7 @@ export default function Checkout() {
           Digital keys - nothing ships, so there is no address to enter.
         </p>
 
-        <div className="bg-white rounded-xl shadow-soft p-6 mb-6">
+        <div className="bg-neutral-100 rounded-xl shadow-soft p-6 mb-6">
           <h2 className="text-lg font-semibold text-neutral-900 mb-4">Order summary</h2>
           <div className="space-y-4">
             {items.map((item) => (

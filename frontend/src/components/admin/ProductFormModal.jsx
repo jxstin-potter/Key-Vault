@@ -127,8 +127,8 @@ export default function ProductFormModal({ open, onClose, onSaved, product, cate
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-      <div className="bg-white rounded-xl shadow-large w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 sticky top-0 bg-white">
+      <div className="bg-neutral-100 rounded-xl shadow-large w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 sticky top-0 bg-neutral-100">
           <h2 className="text-xl font-semibold text-neutral-900">
             {isEdit ? `Edit ${product.name}` : 'Add a game'}
           </h2>
