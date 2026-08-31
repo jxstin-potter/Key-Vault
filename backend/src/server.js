@@ -166,8 +166,11 @@ app.get('/api/docs', (req, res) => {
       reviews: '/api/reviews',
       users: '/api/users (admin only)'
     },
-    demoAccounts: {
-      admin: 'admin@keyvault.com / admin123',
+    // Only the shopper account is advertised. An admin credential here is a
+    // published administrative takeover: this endpoint is unauthenticated, and
+    // the admin role can create/delete products, mint and read game keys, and
+    // read every customer record.
+    demoAccount: {
       user: 'user@keyvault.com / user123'
     },
     note: 'For POST endpoints, use JSON body as described in the README.'

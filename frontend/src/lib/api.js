@@ -2,9 +2,24 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
 
-// Environment variable for API URL
+// Environment variable for API URL.
+//
+// Vite inlines this at build time, so a production bundle built without
+// VITE_API_URL set can never recover at runtime. The previous fallback was a
+// literal placeholder host (your-backend-url.onrender.com) - the store came up
+// looking fine and then failed every request with an opaque network error,
+// giving no hint that the build was simply misconfigured. Failing loudly here
+// costs one obvious console error instead of an afternoon of debugging.
 const isDevelopment = import.meta.env.DEV;
-const apiUrl = import.meta.env.VITE_API_URL || (isDevelopment ? 'http://localhost:5000/api' : 'https://your-backend-url.onrender.com/api');
+const apiUrl =
+  import.meta.env.VITE_API_URL || (isDevelopment ? 'http://localhost:5000/api' : null);
+
+if (!apiUrl) {
+  throw new Error(
+    'VITE_API_URL is not set. A production build needs it to reach the API - ' +
+      'set it in the Vercel project settings and redeploy.'
+  );
+}
 
 // The API is hosted on Render's free tier, which spins the instance down
 // after inactivity. A cold start regularly takes 30-60s, so a short timeout
