@@ -88,10 +88,15 @@ not documented here: this README is public, so anything written in it is
 published, and the admin role can create and delete products, mint and read
 game keys, and read every customer record.
 
-`npm run db:seed` creates the admin with the password set in `src/seed.js`.
-**Change it immediately after seeding any environment that is reachable from
-the internet**, and keep the new value in a password manager rather than in
-the repo.
+`npm run db:seed` picks the admin password in this order:
+
+1. `SEED_ADMIN_PASSWORD`, if you set it.
+2. In production with nothing set, a random 24-character password, printed
+   once to the seed output — copy it out of the deploy log and store it.
+3. Locally, a fixed dev password, so the usual workflow stays friction-free.
+
+Re-seeding never changes the password of an admin that already exists, so a
+routine reseed cannot silently undo a rotation.
 
 ## 🛠️ Development
 
@@ -130,6 +135,10 @@ FRONTEND_URL="http://localhost:5173"
 # Optional
 PORT=5000
 NODE_ENV="development"
+# Password for the seeded admin account. If unset, seeding uses a local dev
+# default in development, and generates a random one in production (printed
+# once to the seed output).
+SEED_ADMIN_PASSWORD="choose-something-strong"
 STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 CLOUDINARY_CLOUD_NAME="your_cloudinary_cloud_name"

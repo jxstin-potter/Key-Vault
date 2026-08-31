@@ -1,9 +1,50 @@
+import crypto from 'crypto';
 import prisma from './lib/prisma.js';
 import bcrypt from 'bcryptjs';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+// Ambiguous glyphs left out so a generated password can be read back or
+// retyped without confusion.
+const PASSWORD_ALPHABET =
+  'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
+
+function randomPassword(len = 24) {
+  const bytes = crypto.randomBytes(len * 2);
+  let out = '';
+  for (let i = 0; out.length < len && i < bytes.length; i++) {
+    out += PASSWORD_ALPHABET[bytes[i] % PASSWORD_ALPHABET.length];
+  }
+  return out;
+}
+
+/**
+ * Decide the admin password for this seed run.
+ *
+ * This used to be the literal 'admin123'. deploy-setup.js runs this seed on
+ * Render, where NODE_ENV is production, so that hardcoded value could mint a
+ * publicly-guessable administrator - the exact account that can create and
+ * delete products, mint and read game keys, and read every customer record.
+ *
+ * Precedence:
+ *   1. SEED_ADMIN_PASSWORD, if you set it deliberately.
+ *   2. In production with nothing set: a random 24-character password,
+ *      printed once. Better an operator has to copy it out of the deploy log
+ *      than that the account ships with a known password.
+ *   3. Locally: a fixed dev password, so the usual workflow stays friction-free.
+ */
+function resolveAdminPassword() {
+  const fromEnv = process.env.SEED_ADMIN_PASSWORD;
+  if (fromEnv) return { password: fromEnv, source: 'env' };
+
+  if (process.env.NODE_ENV === 'production') {
+    return { password: randomPassword(), source: 'generated' };
+  }
+
+  return { password: 'admin123', source: 'dev-default' };
+}
 
 const slugify = (name) =>
   name
@@ -141,17 +182,41 @@ async function main() {
 
   // --- Users ---------------------------------------------------------------
   console.log('Creating admin user...');
+  const admin = resolveAdminPassword();
+  const adminEmail = 'admin@keyvault.com';
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: adminEmail },
+    select: { id: true }
+  });
+
   await prisma.user.upsert({
-    where: { email: 'admin@keyvault.com' },
+    where: { email: adminEmail },
+    // Deliberately empty: re-seeding must never reset the password of an admin
+    // that already exists, or a routine reseed would silently undo a rotation.
     update: {},
     create: {
-      email: 'admin@keyvault.com',
-      password: await bcrypt.hash('admin123', 12),
+      email: adminEmail,
+      password: await bcrypt.hash(admin.password, 12),
       firstName: 'Admin',
       lastName: 'User',
       role: 'ADMIN'
     }
   });
+
+  if (existingAdmin) {
+    console.log('   Admin already exists - password left unchanged.');
+  } else if (admin.source === 'generated') {
+    console.log('');
+    console.log('   ================================================================');
+    console.log('   ADMIN PASSWORD (generated, shown once): ' + admin.password);
+    console.log('   Save this now. Set SEED_ADMIN_PASSWORD to choose it yourself.');
+    console.log('   ================================================================');
+    console.log('');
+  } else if (admin.source === 'env') {
+    console.log('   Admin password taken from SEED_ADMIN_PASSWORD.');
+  } else {
+    console.log('   Admin created with the local dev password.');
+  }
 
   console.log('Creating test customers...');
   const customers = [
@@ -285,7 +350,17 @@ async function main() {
 
   console.log('Seeding completed successfully!');
   console.log('Test Accounts:');
-  console.log('   Admin: admin@keyvault.com / admin123');
+  // Only claim a password when this run actually set one. If the admin already
+  // existed its password was left alone, and printing the seed default here
+  // would state something untrue - which is how a stale 'admin123' ends up
+  // trusted in the first place.
+  if (existingAdmin) {
+    console.log('   Admin: admin@keyvault.com  (existing password, unchanged)');
+  } else if (admin.source === 'dev-default') {
+    console.log('   Admin: admin@keyvault.com / admin123  (local dev only)');
+  } else {
+    console.log('   Admin: admin@keyvault.com  (password shown above, not repeated)');
+  }
   console.log('   User:  user@keyvault.com / user123');
   console.log('   Customers: customer1-3@test.com / password123');
   console.log(gameCount + ' games across ' + GENRES.length + ' genres');
