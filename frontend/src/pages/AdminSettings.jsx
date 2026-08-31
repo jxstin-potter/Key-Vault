@@ -11,21 +11,19 @@ import {
   Eye,
   EyeOff,
   Upload,
-  Trash2
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { api } from '../lib/api';
-import toast from 'react-hot-toast';
 
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState('store');
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
   // Store settings
   const [storeSettings, setStoreSettings] = useState({
-    name: 'CommerceFlow',
-    description: 'Your premium e-commerce destination',
+    name: 'KeyVault',
+    description: 'Genuine game keys, delivered instantly',
     email: 'admin@keyvault.com',
     phone: '+1 (555) 123-4567',
     address: {
@@ -105,40 +103,14 @@ export default function AdminSettings() {
     { id: 'theme', name: 'Theme', icon: Palette }
   ];
 
-  const handleSave = async (settingsType) => {
-    setIsLoading(true);
-    try {
-      switch (settingsType) {
-        case 'store':
-          await api.put('/admin/settings/store', storeSettings);
-          break;
-        case 'user':
-          await api.put('/admin/settings/user', userSettings);
-          break;
-        case 'security':
-          await api.put('/admin/settings/security', securitySettings);
-          break;
-        case 'notifications':
-          await api.put('/admin/settings/notifications', notificationSettings);
-          break;
-        case 'payment':
-          await api.put('/admin/settings/payment', paymentSettings);
-          break;
-        case 'shipping':
-          await api.put('/admin/settings/shipping', shippingSettings);
-          break;
-        case 'theme':
-          await api.put('/admin/settings/theme', themeSettings);
-          break;
-      }
-      toast.success('Settings saved successfully');
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-      toast.error('Failed to save settings');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Saving is intentionally not wired up. Every tab here used to PUT to
+  // /api/admin/settings/*, none of which exist on the backend, so all seven
+  // calls 404'd while the button still reported "Settings saved successfully"
+  // on the happy path it never reached. Rather than build those endpoints,
+  // note that nothing in the application reads any of these values - they are
+  // write-only state - so persisting them would store data no code consumes.
+  // The form stays browsable; the save path is disabled until the settings
+  // actually drive something.
 
   const handleLogoUpload = (event) => {
     const file = event.target.files[0];
@@ -781,20 +753,25 @@ export default function AdminSettings() {
         <div className="p-6">
           {renderContent()}
 
-          {/* Save Button */}
+          {/* Saving is disabled - see the note on handleSave above. */}
           <div className="mt-8 pt-6 border-t border-neutral-200">
+            <div className="flex items-start gap-3 mb-4 p-4 rounded-lg border border-warning-500/30 bg-warning-500/10">
+              <AlertTriangle size={18} className="text-warning-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-neutral-900">Settings are read-only for now</p>
+                <p className="text-sm text-neutral-600 mt-1">
+                  These controls are not connected to storage yet, so changes are not kept.
+                  Nothing in the store reads them.
+                </p>
+              </div>
+            </div>
             <button
-              onClick={() => handleSave(activeTab)}
-              disabled={isLoading}
-              className={cn(
-                "flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors",
-                isLoading
-                  ? "bg-neutral-200 text-neutral-500 cursor-not-allowed"
-                  : "bg-primary-600 text-white hover:bg-primary-700"
-              )}
+              disabled
+              title="Saving is not implemented yet"
+              className="flex items-center space-x-2 px-6 py-3 rounded-lg font-medium bg-neutral-200 text-neutral-500 cursor-not-allowed"
             >
               <Save size={16} />
-              <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
+              <span>Save Changes</span>
             </button>
           </div>
         </div>

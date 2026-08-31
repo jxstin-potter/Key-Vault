@@ -80,7 +80,7 @@ export default function Register() {
             <UserCheck className="text-white" size={32} />
           </div>
           <h1 className="text-3xl font-bold text-neutral-900 mb-2">Create Account</h1>
-          <p className="text-neutral-600">Join CommerceFlow today</p>
+          <p className="text-neutral-600">Join KeyVault today</p>
         </div>
 
         {/* Registration Form */}
