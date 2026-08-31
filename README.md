@@ -1,6 +1,6 @@
-# 🚀 CommerceFlow version 2
+# 🔑 KeyVault
 
-A modern, full-stack e-commerce platform built with React 19, Express.js, and PostgreSQL. Deployed on Render (backend) and Vercel (frontend) with automatic CI/CD.
+A digital game key marketplace built with React 19, Express.js, and PostgreSQL. Browse games by genre and platform, buy a key, and receive it instantly. Deployed on Render (backend) and Vercel (frontend) with automatic CI/CD.
 
 ## ✨ Features
 
@@ -80,8 +80,18 @@ commerceFlow-v2/
    - Database GUI: http://localhost:5555 (Prisma Studio)
 
 ### Test Accounts
-- **Admin**: `admin@commerceflow.com` / `admin123`
-- **User**: `user@commerceflow.com` / `user123`
+
+- **User**: `user@keyvault.com` / `user123` — a shopper account, safe to share.
+
+The seeded admin account is `admin@keyvault.com`. Its password is deliberately
+not documented here: this README is public, so anything written in it is
+published, and the admin role can create and delete products, mint and read
+game keys, and read every customer record.
+
+`npm run db:seed` creates the admin with the password set in `src/seed.js`.
+**Change it immediately after seeding any environment that is reachable from
+the internet**, and keep the new value in a password manager rather than in
+the repo.
 
 ## 🛠️ Development
 
@@ -223,7 +233,7 @@ curl http://localhost:5000/health
 # Authentication
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@commerceflow.com","password":"admin123"}'
+  -d '{"email":"user@keyvault.com","password":"user123"}'
 
 # Protected routes
 curl -X GET http://localhost:5000/api/users/profile \
