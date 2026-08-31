@@ -15,6 +15,11 @@ const productSelect = {
   price: true,
   images: true,
   isActive: true,
+  platform: true,
+  region: true,
+  // Without the genre relation the cart falls back to a literal "General"
+  // badge on every line, which is never what the product actually is.
+  category: { select: { id: true, name: true } },
   _count: AVAILABLE_KEYS
 };
 

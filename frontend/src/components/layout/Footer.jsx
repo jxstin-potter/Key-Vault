@@ -80,7 +80,7 @@ export default function Footer() {
                   to="/products" 
                   className="text-neutral-400 hover:text-white transition-colors text-sm"
                 >
-                  Products
+                  Games
                 </Link>
               </li>
               <li>
@@ -88,7 +88,7 @@ export default function Footer() {
                   to="/categories" 
                   className="text-neutral-400 hover:text-white transition-colors text-sm"
                 >
-                  Categories
+                  Genres
                 </Link>
               </li>
               <li>

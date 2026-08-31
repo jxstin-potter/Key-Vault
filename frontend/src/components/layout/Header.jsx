@@ -86,13 +86,13 @@ export default function Header() {
               to="/products" 
               className="text-neutral-600 hover:text-primary-600 transition-colors font-medium"
             >
-              Products
+              Games
             </Link>
             <Link 
               to="/categories" 
               className="text-neutral-600 hover:text-primary-600 transition-colors font-medium"
             >
-              Categories
+              Genres
             </Link>
             {isAuthenticated && user?.role === 'ADMIN' && (
               <Link 
@@ -275,13 +275,13 @@ export default function Header() {
                 to="/products" 
                 className="px-4 py-2 text-neutral-600 hover:text-primary-600 hover:bg-neutral-50 rounded-lg transition-colors"
               >
-                Products
+                Games
               </Link>
               <Link 
                 to="/categories" 
                 className="px-4 py-2 text-neutral-600 hover:text-primary-600 hover:bg-neutral-50 rounded-lg transition-colors"
               >
-                Categories
+                Genres
               </Link>
               
               {!isAuthenticated && (

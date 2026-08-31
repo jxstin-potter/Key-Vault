@@ -5,11 +5,9 @@ export const productApi = {
   // Get all products with pagination
   getAllProducts: async (page = 1, limit = 10, filters = {}) => {
     try {
-      console.log('🔍 Fetching products from:', api.defaults.baseURL);
       const response = await api.get('/products', {
         params: { page, limit, ...filters }
       });
-      console.log('✅ Products response:', response.data);
       return response.data;
     } catch (error) {
       console.error('❌ Failed to fetch products:', error);

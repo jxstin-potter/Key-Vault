@@ -14,9 +14,15 @@
   /* Elements with no explicit text color class (table cells, some plain
      <span>/<p> tags) inherit the browser's default black rather than a
      theme color. Setting it on body means anything that doesn't override it
-     explicitly still reads correctly against the dark background. */
-  body {
-    @apply text-neutral-900;
+     explicitly still reads correctly against the dark background.
+
+     The background matters just as much: every page paints its own ground on
+     a wrapper div, leaving html/body transparent. Anywhere the browser paints
+     outside those wrappers - overscroll bounce, and repaints behind the
+     background-attachment:fixed parallax section - the default white showed
+     through as a flash. */
+  html, body {
+    @apply bg-neutral-50 text-neutral-900;
   }
 
   input, textarea, select {
