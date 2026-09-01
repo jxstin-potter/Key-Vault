@@ -200,7 +200,7 @@ export default function Home() {
     <>
       <div ref={topRef} />
       {/* Hero Section */}
-      <section className="min-h-[80vh] w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 bg-neutral-50 relative overflow-hidden">
+      <section className="w-full flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-16 sm:py-20 bg-neutral-50 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 left-20 w-72 h-72 bg-primary-500 rounded-full blur-3xl"></div>

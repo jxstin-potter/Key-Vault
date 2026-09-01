@@ -16,6 +16,11 @@ const PLATFORM_STYLES = {
   NINTENDO: 'bg-[#e60012]'
 };
 
+// Release dates are stored at midnight UTC; without pinning the timezone a
+// negative-offset viewer sees the previous day.
+const releaseYear = (value) =>
+  value ? new Date(value).toLocaleDateString('en-US', { year: 'numeric', timeZone: 'UTC' }) : null;
+
 /**
  * The single shared product tile. Consumes the RAW API product shape only
  * (product.stock, product.averageRating, product.reviewCount,
@@ -30,6 +35,7 @@ export default function GameCard({ product, onAddToCart }) {
   const outOfStock = product.stock === 0;
   const lowStock = product.stock > 0 && product.stock < 10;
   const image = product.images?.[0];
+  const year = releaseYear(product.releaseDate);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -38,13 +44,14 @@ export default function GameCard({ product, onAddToCart }) {
   };
 
   return (
-    <div className="group relative bg-neutral-100 rounded-xl border border-neutral-200 overflow-hidden hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200">
-      <Link to={`/products/${product.id}`}>
-        <div className="relative aspect-[2/3] overflow-hidden bg-neutral-100">
+    <div className="group relative flex flex-col bg-neutral-100 rounded-xl border border-neutral-200 overflow-hidden hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200">
+      <Link to={`/products/${product.id}`} className="flex flex-col flex-1">
+        <div className="relative aspect-[2/3] overflow-hidden bg-neutral-200">
           {image && !imgFailed ? (
             <img
               src={image}
               alt={product.name}
+              loading="lazy"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={() => setImgFailed(true)}
             />
@@ -70,26 +77,34 @@ export default function GameCard({ product, onAddToCart }) {
           )}
           {lowStock && (
             <span className="absolute top-2 right-2 bg-yellow-500 text-white px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
-              Low Stock
+              Only {product.stock} left
             </span>
           )}
         </div>
 
-        <div className="p-3 pb-0">
+        <div className="p-3 pb-0 flex-1">
           <div className="flex items-center gap-1 mb-1.5">
             <span className="text-[10px] font-medium text-primary-700 bg-primary-100 px-1.5 py-0.5 rounded">
               {product.category?.name || 'General'}
             </span>
             {product.region && (
-              <span className="text-[10px] font-medium text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-medium text-neutral-500 bg-neutral-200 px-1.5 py-0.5 rounded">
                 {product.region}
               </span>
             )}
           </div>
 
-          <h3 className="font-semibold text-neutral-900 text-sm leading-snug mb-1.5 line-clamp-2 min-h-[2.5rem]">
+          <h3 className="font-semibold text-neutral-900 text-sm leading-snug mb-1 line-clamp-2 min-h-[2.5rem]">
             {product.name}
           </h3>
+
+          {/* The API has always returned these; the card used to discard them.
+              At four columns there is room to show what a shopper compares on. */}
+          {(product.developer || year) && (
+            <p className="text-[11px] text-neutral-500 mb-1.5 truncate">
+              {[product.developer, year].filter(Boolean).join(' · ')}
+            </p>
+          )}
 
           <div className="flex items-center gap-1 mb-2">
             <Star
@@ -112,7 +127,7 @@ export default function GameCard({ product, onAddToCart }) {
           className={cn(
             'p-2 rounded-lg transition-colors',
             outOfStock
-              ? 'bg-neutral-100 text-neutral-300 cursor-not-allowed'
+              ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
               : 'bg-primary-600 text-white hover:bg-primary-700'
           )}
         >
