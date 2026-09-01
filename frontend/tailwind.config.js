@@ -7,48 +7,39 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Accent hues with no ramp equivalent. Used sparingly and semantically:
-        // orange = urgency/low stock, pink = premium/exclusive, purple = depth.
-        // Neon green and cyan are deliberately NOT duplicated here - they are
-        // primary-400 and secondary-400, so there is one source of truth.
-        gaming: {
-          orange: '#FF6600',
-          pink: '#FF00AA',
-          purple: '#6600FF',
-        },
-        // Neon spring green. 400 is the hero shade - the one that reads as
-        // "neon" on the dark ground, used for text, icons, rings and the CTA
-        // gradient. 600 stays dark on purpose: it is the background under
-        // white text (`bg-primary-600 text-white`) in badges and pills, and it
-        // holds the same 3.3:1 contrast the previous teal had, so retuning the
-        // hue costs no legibility.
+        // Signal blue. 400 is the hero shade - links, icons, rings, and
+        // anything that needs to read as interactive against the dark ground.
+        // 600 is the button and pill background under white text; at 5.4:1 it
+        // clears AA for normal text, which the earlier green ramps could only
+        // manage at the large-text threshold.
         primary: {
-          50: '#e6fff4',
-          100: '#b8ffe2',
-          200: '#7dffc9',
-          300: '#33ffab',
-          400: '#00ff88',
-          500: '#00e074',
-          600: '#00a15f',
-          700: '#007f4b',
-          800: '#00663d',
-          900: '#005032',
-          950: '#002e1c',
+          50: '#edf7fe',
+          100: '#d3ecfd',
+          200: '#ade0fb',
+          300: '#85d0f8',
+          400: '#66c0f4',
+          500: '#3f9fdb',
+          600: '#1570a8',
+          700: '#115a87',
+          800: '#0f4a6f',
+          900: '#0e3c5a',
+          950: '#082638',
         },
-        // Bright cyan. Pairs with primary for the green-to-cyan gradient that
-        // carries the brand; on its own it marks trust/informational surfaces.
+        // Not a second brand colour - it exists so the brand gradient has
+        // somewhere to travel. Kept in the same cool family as primary so a
+        // gradient reads as depth rather than as two competing hues.
         secondary: {
-          50: '#e8fdff',
-          100: '#c4f9ff',
-          200: '#8ff3ff',
-          300: '#4de9ff',
-          400: '#00ccff',
-          500: '#00b0e6',
-          600: '#008fbf',
-          700: '#006f96',
-          800: '#005876',
-          900: '#00485f',
-          950: '#002d3d',
+          50: '#eef9fb',
+          100: '#d0f0f6',
+          200: '#a5e3ee',
+          300: '#6fcfe2',
+          400: '#3bb6d0',
+          500: '#2596b0',
+          600: '#1b7890',
+          700: '#175f72',
+          800: '#154e5e',
+          900: '#14404d',
+          950: '#0a2733',
         },
         accent: {
           50: '#fefce8',
@@ -64,20 +55,22 @@ export default {
           950: '#422006',
         },
         // Inverted scale: 50 is the darkest (the page ground) and 950 the
-        // lightest (primary text). Retuned from a green-black to the indigo
-        // black the brand sits on - 50 is the page ground, 200 the card ground.
+        // lightest (primary text). Cool blue-grey rather than a true neutral -
+        // the slight blue cast is most of what separates a storefront that
+        // looks considered from one that looks like unstyled dark mode. 50 is
+        // the page ground, 200 the card ground, 300 the borders.
         neutral: {
-          50: '#0f0f1e',
-          100: '#16162a',
-          200: '#1a1a2e',
-          300: '#262640',
-          400: '#3d3d5c',
-          500: '#6b6b8a',
-          600: '#9c9cb8',
-          700: '#bfbfd4',
-          800: '#d9d9e6',
-          900: '#f2f2f7',
-          950: '#fbfbfd',
+          50: '#171a21',
+          100: '#1b2838',
+          200: '#21344a',
+          300: '#2a475e',
+          400: '#3d5a75',
+          500: '#6a8ba8',
+          600: '#93aec5',
+          700: '#b8cbdb',
+          800: '#d5e2eb',
+          900: '#eef3f7',
+          950: '#f8fafc',
         },
         success: {
           50: '#f0fdf4',
@@ -119,11 +112,13 @@ export default {
           950: '#450a0a',
         },
       },
+      // One family across the whole UI, with weight and tracking carrying the
+      // hierarchy. Steam does the same, and a single neo-grotesque reads as
+      // more considered here than a display face paired against a text face.
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Poppins', 'system-ui', 'sans-serif'],
+        display: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
-        pixel: ['"Press Start 2P"', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -158,11 +153,12 @@ export default {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
         'medium': '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         'large': '0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 2px 10px -2px rgba(0, 0, 0, 0.05)',
-        'glow': '0 0 20px rgba(47, 214, 150, 0.35)',
-        'glow-purple': '0 0 20px rgba(217, 70, 239, 0.3)',
-        'neon-green': '0 0 10px rgba(0, 255, 136, 0.3), 0 0 20px rgba(0, 204, 255, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.1)',
-        'neon-green-lg': '0 0 20px rgba(0, 255, 136, 0.6), 0 0 40px rgba(0, 204, 255, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.15)',
-        'neon-cyan': '0 0 20px rgba(0, 204, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4)',
+        // Depth on a dark ground has to come from real shadow plus a hairline
+        // of light along the top edge; a shadow alone just muddies. Kept
+        // restrained - the earlier neon glows read as a games console, which
+        // is the opposite of the intent here.
+        'raised': '0 1px 0 0 rgba(255, 255, 255, 0.06) inset, 0 2px 8px rgba(0, 0, 0, 0.4)',
+        'raised-lg': '0 1px 0 0 rgba(255, 255, 255, 0.08) inset, 0 8px 24px rgba(0, 0, 0, 0.55)',
       },
       backdropBlur: {
         xs: '2px',

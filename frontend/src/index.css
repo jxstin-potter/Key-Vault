@@ -1,5 +1,6 @@
-/* Import fonts - Gaming theme: Poppins for display, Inter for body/UI, Press Start 2P for accents */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Press+Start+2P&display=swap');
+/* Import fonts - Inter carries the whole UI (weight and tracking do the work
+   a second family would otherwise do); JetBrains Mono for keys and codes. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* Tailwind directives */
 @tailwind base;
@@ -35,42 +36,41 @@
 
 /* Custom component classes */
 @layer components {
-  /* The neon CTA. Dark text on a bright green-to-cyan gradient rather than
-     white on dark green: it is the look the brand is built around and it
-     lands at ~13:1 contrast, well past what white-on-green could reach. The
-     glow is layered (tight core, wider halo, inner highlight) because a
-     single shadow reads as a drop shadow, not as light. */
+  /* Solid fill with white text rather than dark text on a bright gradient.
+     The gradient version was the loudest thing on every page it appeared on;
+     a flat blue at 5.4:1 carries the same emphasis without shouting, and it
+     is what makes the button read as a storefront control. */
   .btn-primary {
-    @apply bg-gradient-to-r from-primary-400 to-secondary-400 text-neutral-50 px-4 py-2 rounded-lg font-semibold
-           border border-primary-400 shadow-neon-green
-           transition-all duration-200 transform
-           hover:shadow-neon-green-lg hover:-translate-y-0.5 hover:brightness-110;
+    @apply bg-primary-600 text-white px-4 py-2 rounded font-semibold
+           shadow-raised transition-colors duration-150
+           hover:bg-primary-500
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50;
   }
 
   .btn-outline {
-    @apply border border-primary-400 text-primary-400 px-4 py-2 rounded-lg font-medium
-           transition-all duration-200
-           hover:bg-primary-400 hover:text-neutral-50 hover:shadow-neon-green;
+    @apply border border-neutral-300 text-neutral-800 px-4 py-2 rounded font-medium
+           transition-colors duration-150
+           hover:border-primary-500 hover:text-white hover:bg-neutral-200
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50;
   }
 
   .text-gradient-primary {
-    @apply bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary-300 to-secondary-400 bg-clip-text text-transparent;
   }
 
-  /* Product/content card. The spring easing overshoots slightly on the way up,
-     which is what makes the lift read as snappy rather than sluggish.
+  /* Product/content card. Hover brightens the border and deepens the shadow
+     instead of lifting and glowing - at grid density, motion on every tile is
+     noise, and the shadow alone is enough to say "this one".
 
      Deliberately sets no background: consumers pick their own, and cards whose
      contents rely on contrast against the card surface (an image placeholder,
-     say) need to choose it themselves. The lift stays small because these
-     appear in dense grids, where a large one makes neighbours look unstable. */
+     say) need to choose it themselves. */
   .card-game {
-    @apply border border-neutral-300 rounded-xl transition-all duration-300;
-    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+    @apply border border-neutral-300 rounded transition-[border-color,box-shadow] duration-150;
   }
 
   .card-game:hover {
-    @apply border-secondary-400 shadow-neon-cyan -translate-y-1;
+    @apply border-neutral-400 shadow-raised-lg;
   }
 
   /* Status badges. Colour carries the meaning on its own, so each also states
@@ -85,24 +85,15 @@
   }
 
   .badge-stock {
-    @apply badge-base border-primary-400 text-primary-400
-           shadow-[0_0_10px_rgba(0,255,136,0.35)];
+    @apply badge-base border-success-500/60 text-success-400;
   }
 
   .badge-limited {
-    @apply badge-base border-gaming-orange text-gaming-orange
-           shadow-[0_0_10px_rgba(255,102,0,0.35)];
+    @apply badge-base border-warning-500/60 text-warning-400;
   }
 
   .badge-out {
-    @apply badge-base border-error-500 text-error-500
-           shadow-[0_0_10px_rgba(239,68,68,0.35)];
-  }
-
-  /* Pixel accent. Deliberately capped tiny and tracking-tight - Press Start 2P
-     is unreadable as body copy, so it is only ever a garnish on short labels. */
-  .text-pixel {
-    @apply font-pixel text-[10px] leading-relaxed;
+    @apply badge-base border-error-500/60 text-error-400;
   }
 
   /* Hide scrollbar utilities */
@@ -125,17 +116,6 @@
   }
 }
 
-/* The glow and lift effects are decorative; anyone who has asked the OS for
-   less motion gets the same layout with the movement removed. Colour and
-   border changes stay, so hover still gives feedback. */
-@media (prefers-reduced-motion: reduce) {
-  .btn-primary:hover,
-  .btn-outline:hover,
-  .card-game:hover {
-    transform: none;
-  }
-
-  .card-game {
-    transition-duration: 0.01ms;
-  }
-}
+/* No prefers-reduced-motion block: nothing above animates position or scale
+   any more. The remaining transitions are colour and shadow only, which are
+   not what that preference is asking to suppress. */

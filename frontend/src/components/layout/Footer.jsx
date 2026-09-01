@@ -35,16 +35,16 @@ export default function Footer() {
 
   return (
     <footer className="bg-neutral-100 text-neutral-800 relative">
-      {/* Brand hairline. A single glowing rule that fades out at both ends
-          carries the palette without the weight of the old solid bar. */}
-      <div className="absolute top-0 left-0 h-px w-full bg-gradient-to-r from-primary-400/0 via-primary-400 to-secondary-400/0 shadow-[0_0_12px_rgba(0,255,136,0.45)]" />
+      {/* Brand hairline. A plain rule that fades out at both ends - it marks
+          the boundary without the glow that used to sit under it. */}
+      <div className="absolute top-0 left-0 h-px w-full bg-gradient-to-r from-primary-500/0 via-primary-500/70 to-secondary-500/0" />
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-8 md:flex-row md:justify-between">
           {/* Brand */}
           <div className="max-w-xs space-y-3">
             <Link to="/" className="group inline-flex items-center space-x-2">
-              <Logo className="w-7 h-7 transition-[filter] duration-200 group-hover:drop-shadow-[0_0_8px_rgba(0,255,136,0.55)]" />
+              <Logo className="w-7 h-7 transition-opacity duration-150 group-hover:opacity-80" />
               <span className="text-lg font-bold font-display tracking-wide text-gradient-primary">
                 KeyVault
               </span>

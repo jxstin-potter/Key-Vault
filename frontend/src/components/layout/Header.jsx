@@ -69,7 +69,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="group flex items-center space-x-2">
-            <Logo className="w-8 h-8 transition-[filter] duration-200 group-hover:drop-shadow-[0_0_8px_rgba(0,255,136,0.55)]" />
+            <Logo className="w-8 h-8 transition-opacity duration-150 group-hover:opacity-80" />
             <span className="text-xl font-bold font-display tracking-wide text-gradient-primary">KeyVault</span>
           </Link>
 
