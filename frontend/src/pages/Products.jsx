@@ -74,14 +74,20 @@ export default function Products() {
     fetchData();
   }, [currentPage, selectedCategory, selectedPlatform, selectedRegion, inStockOnly, sortBy, debouncedSearchTerm]);
 
-  // On mount, seed the category filter from a ?category= query param (used by
-  // Categories.jsx links)
+  // Seed filters from the URL. Categories.jsx links with ?category=, and the
+  // homepage platform strip links with ?platform=, so both have to be applied
+  // on arrival or the link silently does nothing.
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+
     const cat = params.get('category');
-    if (cat && categories.includes(cat)) {
-      setSelectedCategory(cat);
-    }
+    if (cat && categories.includes(cat)) setSelectedCategory(cat);
+
+    const plat = params.get('platform');
+    if (plat && PLATFORMS.includes(plat)) setSelectedPlatform(plat);
+
+    const reg = params.get('region');
+    if (reg && REGIONS.includes(reg)) setSelectedRegion(reg);
   }, [location.search, categories]);
 
   const resetPage = () => setCurrentPage(1);

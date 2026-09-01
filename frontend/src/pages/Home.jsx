@@ -1,5 +1,6 @@
 import ProductCarousel from '../components/ProductCarousel';
 import ParallaxValueProps from '../components/ParallaxValueProps';
+import PlatformStrip from '../components/PlatformStrip';
 import Footer from '../components/layout/Footer';
 import { TrendingUp, Sparkles, Zap, ArrowRight, Shield, Clock } from 'lucide-react';
 import { useRef, useState, useEffect, useMemo } from 'react';
@@ -107,94 +108,55 @@ export default function Home() {
     await addToCart(product.id, 1);
   };
 
-  // Calculate categorized products with uniqueness using useMemo
+  // Split the catalogue into three rows, each backed by a field that actually
+  // means what the row is called.
+  //
+  // The previous version had two rules that could never fire. "Best Sellers"
+  // required reviewCount >= 50 when the catalogue's maximum is 4, so it always
+  // fell through to a rating sort - the row was Top Rated wearing the wrong
+  // name, and there is no sales data behind it at all. "New Releases" sorted on
+  // createdAt, the row insert date, so it surfaced whatever was seeded most
+  // recently rather than the newest games; The Witcher 3 (2015) could appear
+  // under it. releaseDate is real data and is used instead.
   const categorizedProducts = useMemo(() => {
     if (products.length === 0) {
-      return { bestSellers: [], newReleases: [], bestSales: [] };
+      return { topRated: [], newReleases: [], mostReviewed: [] };
     }
 
+    // Rows must not repeat a game, so each pick is claimed as it is taken.
     const usedIds = new Set();
-    const result = { bestSellers: [], newReleases: [], bestSales: [] };
-
-    // Helper function to get unique products
-    const getUniqueProducts = (productList, maxCount = 6) => {
-      const uniqueProducts = productList.filter(product => !usedIds.has(product.id));
-      const selected = uniqueProducts.slice(0, maxCount);
-      selected.forEach(product => usedIds.add(product.id));
-      return selected;
+    const take = (list, maxCount = 6) => {
+      const picked = list.filter((p) => !usedIds.has(p.id)).slice(0, maxCount);
+      picked.forEach((p) => usedIds.add(p.id));
+      return picked;
     };
 
-    // Get Best Sellers
-    let bestSellers = products
-      .filter(product => product.averageRating >= 4.5 && product.reviewCount >= 50)
-      .sort((a, b) => b.averageRating - a.averageRating);
+    const topRated = take(
+      [...products]
+        .filter((p) => (p.averageRating || 0) > 0)
+        .sort((a, b) => b.averageRating - a.averageRating)
+    );
 
-    if (bestSellers.length === 0) {
-      bestSellers = products
-        .filter(product => product.averageRating > 0)
-        .sort((a, b) => b.averageRating - a.averageRating);
-    }
+    const newReleases = take(
+      [...products]
+        .filter((p) => p.releaseDate)
+        .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
+    );
 
-    if (bestSellers.length === 0) {
-      bestSellers = products
-        .filter(product => product.stock > 0 && product.stock <= 30)
-        .sort((a, b) => a.stock - b.stock);
-    }
+    const mostReviewed = take(
+      [...products]
+        .filter((p) => (p.reviewCount || 0) > 0)
+        .sort((a, b) => b.reviewCount - a.reviewCount)
+    );
 
-    if (bestSellers.length === 0) {
-      bestSellers = products.slice(0, 6);
-    }
-
-    result.bestSellers = getUniqueProducts(bestSellers, 6);
-
-    // Get New Releases
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    let newReleases = products
-      .filter(product => new Date(product.createdAt) >= thirtyDaysAgo)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    if (newReleases.length === 0) {
-      newReleases = products
-        .filter(product => product.stock > 50)
-        .sort((a, b) => b.stock - a.stock);
-    }
-
-    if (newReleases.length === 0) {
-      const midPoint = Math.floor(products.length / 2);
-      newReleases = products.slice(midPoint, midPoint + 6);
-    }
-
-    result.newReleases = getUniqueProducts(newReleases, 6);
-
-    // Get Best Sales
-    let bestSales = products
-      .filter(product => product.stock > 0 && product.stock <= 20)
-      .sort((a, b) => a.stock - b.stock);
-
-    if (bestSales.length === 0) {
-      bestSales = products
-        .filter(product => product.stock > 0 && product.stock <= 50)
-        .sort((a, b) => a.stock - b.stock);
-    }
-
-    if (bestSales.length === 0) {
-      bestSales = products
-        .filter(product => parseFloat(product.price) > 50)
-        .sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-    }
-
-    result.bestSales = getUniqueProducts(bestSales, 6);
-
-    return result;
+    return { topRated, newReleases, mostReviewed };
   }, [products]);
 
 
 
   // GameCard and ProductCarousel consume the raw API product shape directly,
   // so the categorized lists need no reshaping before being handed down.
-  const { bestSellers, newReleases, bestSales } = categorizedProducts;
+  const { topRated, newReleases, mostReviewed } = categorizedProducts;
 
   return (
     <>
@@ -260,8 +222,8 @@ export default function Home() {
 
       {/* Product Rows */}
       <ProductRow 
-        title="Best Sellers" 
-        products={bestSellers} 
+        title="Top Rated" 
+        products={topRated} 
         seeMoreLink="/products?sort=rating" 
         icon={TrendingUp}
         isLoading={isLoading}
@@ -270,14 +232,14 @@ export default function Home() {
       <ProductRow 
         title="New Releases" 
         products={newReleases} 
-        seeMoreLink="/products?sort=newest" 
+        seeMoreLink="/products?sort=releaseDate" 
         icon={Sparkles}
         isLoading={isLoading}
         onAddToCart={handleAddToCart}
       />
       <ProductRow 
-        title="Popular Right Now" 
-        products={bestSales} 
+        title="Most Reviewed" 
+        products={mostReviewed} 
         seeMoreLink="/products?sort=popular" 
         icon={Zap}
         isLoading={isLoading}
@@ -285,6 +247,8 @@ export default function Home() {
       />
 
       {/* Value Props (padded section) */}
+      <PlatformStrip />
+
       <section className="w-full flex flex-col items-center justify-center px-0 py-16 sm:py-20 bg-gradient-to-b from-neutral-50 to-neutral-100">
         <ParallaxValueProps />
       </section>
