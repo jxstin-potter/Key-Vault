@@ -196,7 +196,7 @@ export default function ProductDetail() {
               </div>
               <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">{product.category?.name || 'General'}</span>
               {product.platform && (
-                <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-1 rounded-full">
+                <span className="text-xs font-medium text-primary-400 bg-primary-400/10 border border-primary-400/30 px-2 py-1 rounded-full">
                   {product.platform}
                 </span>
               )}
@@ -343,7 +343,7 @@ export default function ProductDetail() {
                   <button
                     onClick={() => handleUpdateQuantity(quantity)}
                     disabled={isLoading}
-                    className="flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+                    className="btn-primary flex-1 py-3 px-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:transform-none"
                   >
                     {isLoading ? "Updating..." : "Update Cart"}
                   </button>
@@ -360,10 +360,10 @@ export default function ProductDetail() {
                   onClick={handleAddToCart}
                   disabled={product.stock === 0 || isLoading}
                   className={cn(
-                    "w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-lg",
+                    "w-full py-3 px-4 flex items-center justify-center gap-2 text-lg transition-all duration-200",
                     product.stock > 0 && !isLoading
-                      ? "bg-primary-600 text-white hover:bg-primary-700 shadow-none hover:shadow-md"
-                      : "bg-neutral-200 text-neutral-500 cursor-not-allowed"
+                      ? "btn-primary"
+                      : "rounded-lg font-medium bg-neutral-200 text-neutral-500 cursor-not-allowed"
                   )}
                 >
                   <ShoppingCart size={22} />
