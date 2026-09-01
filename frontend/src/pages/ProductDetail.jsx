@@ -404,9 +404,11 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Floating Cart Preview */}
+      {/* Floating Cart Preview. Anchored left: the buy box is sticky to the
+          bottom of the content column, so a bottom-right float sits on top of
+          its Update Cart / Remove buttons. */}
       {getItemCount() > 0 && showCartPreview && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 left-6 z-50">
           <div className="bg-neutral-100 rounded-xl shadow-large border border-neutral-200 p-4 max-w-sm">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-neutral-900">Cart Preview</h3>
