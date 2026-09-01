@@ -7,39 +7,48 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Modern color palette
-        // Cartridge theme: one signal color used everywhere (buttons, links,
-        // rings, prices) rather than split across primary+secondary. 600 is
-        // tuned for AA contrast with white button text; 400 is the brighter
-        // "on dark background" shade used for standalone text/icons/rings.
-        primary: {
-          50: '#e9fdf4',
-          100: '#c3fae3',
-          200: '#8ef3c7',
-          300: '#52e6a6',
-          400: '#2fd696',
-          500: '#16bd80',
-          600: '#0ea16d',
-          700: '#0b7f57',
-          800: '#0a6647',
-          900: '#08503a',
-          950: '#042e20',
+        // Accent hues with no ramp equivalent. Used sparingly and semantically:
+        // orange = urgency/low stock, pink = premium/exclusive, purple = depth.
+        // Neon green and cyan are deliberately NOT duplicated here - they are
+        // primary-400 and secondary-400, so there is one source of truth.
+        gaming: {
+          orange: '#FF6600',
+          pink: '#FF00AA',
+          purple: '#6600FF',
         },
-        // Kept in the same family as primary (teal, not magenta) so the rare
-        // remaining use - a hero gradient, a decorative blob - reads as depth
-        // rather than a second brand color competing with the signal green.
+        // Neon spring green. 400 is the hero shade - the one that reads as
+        // "neon" on the dark ground, used for text, icons, rings and the CTA
+        // gradient. 600 stays dark on purpose: it is the background under
+        // white text (`bg-primary-600 text-white`) in badges and pills, and it
+        // holds the same 3.3:1 contrast the previous teal had, so retuning the
+        // hue costs no legibility.
+        primary: {
+          50: '#e6fff4',
+          100: '#b8ffe2',
+          200: '#7dffc9',
+          300: '#33ffab',
+          400: '#00ff88',
+          500: '#00e074',
+          600: '#00a15f',
+          700: '#007f4b',
+          800: '#00663d',
+          900: '#005032',
+          950: '#002e1c',
+        },
+        // Bright cyan. Pairs with primary for the green-to-cyan gradient that
+        // carries the brand; on its own it marks trust/informational surfaces.
         secondary: {
-          50: '#ecfeff',
-          100: '#cffafe',
-          200: '#a5f3fc',
-          300: '#67e8f9',
-          400: '#22d3ee',
-          500: '#06b6d4',
-          600: '#0891b2',
-          700: '#0e7490',
-          800: '#155e75',
-          900: '#164e63',
-          950: '#083344',
+          50: '#e8fdff',
+          100: '#c4f9ff',
+          200: '#8ff3ff',
+          300: '#4de9ff',
+          400: '#00ccff',
+          500: '#00b0e6',
+          600: '#008fbf',
+          700: '#006f96',
+          800: '#005876',
+          900: '#00485f',
+          950: '#002d3d',
         },
         accent: {
           50: '#fefce8',
@@ -54,18 +63,21 @@ export default {
           900: '#713f12',
           950: '#422006',
         },
+        // Inverted scale: 50 is the darkest (the page ground) and 950 the
+        // lightest (primary text). Retuned from a green-black to the indigo
+        // black the brand sits on - 50 is the page ground, 200 the card ground.
         neutral: {
-          50: '#0e1210',
-          100: '#171d1a',
-          200: '#202a25',
-          300: '#2c3a32',
-          400: '#47594e',
-          500: '#6b8177',
-          600: '#9cb2a5',
-          700: '#bccbc0',
-          800: '#d7e2db',
-          900: '#f2f7f4',
-          950: '#fbfdfb',
+          50: '#0f0f1e',
+          100: '#16162a',
+          200: '#1a1a2e',
+          300: '#262640',
+          400: '#3d3d5c',
+          500: '#6b6b8a',
+          600: '#9c9cb8',
+          700: '#bfbfd4',
+          800: '#d9d9e6',
+          900: '#f2f2f7',
+          950: '#fbfbfd',
         },
         success: {
           50: '#f0fdf4',
@@ -108,9 +120,10 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Manrope', 'system-ui', 'sans-serif'],
-        display: ['Chakra Petch', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Poppins', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+        pixel: ['"Press Start 2P"', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -147,6 +160,9 @@ export default {
         'large': '0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 2px 10px -2px rgba(0, 0, 0, 0.05)',
         'glow': '0 0 20px rgba(47, 214, 150, 0.35)',
         'glow-purple': '0 0 20px rgba(217, 70, 239, 0.3)',
+        'neon-green': '0 0 10px rgba(0, 255, 136, 0.3), 0 0 20px rgba(0, 204, 255, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.1)',
+        'neon-green-lg': '0 0 20px rgba(0, 255, 136, 0.6), 0 0 40px rgba(0, 204, 255, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.15)',
+        'neon-cyan': '0 0 20px rgba(0, 204, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4)',
       },
       backdropBlur: {
         xs: '2px',

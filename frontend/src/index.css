@@ -1,5 +1,5 @@
-/* Import fonts - Cartridge theme: Chakra Petch for display, Manrope for body/UI */
-@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Import fonts - Gaming theme: Poppins for display, Inter for body/UI, Press Start 2P for accents */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Press+Start+2P&display=swap');
 
 /* Tailwind directives */
 @tailwind base;
@@ -35,16 +35,55 @@
 
 /* Custom component classes */
 @layer components {
+  /* The neon CTA. Dark text on a bright green-to-cyan gradient rather than
+     white on dark green: it is the look the brand is built around and it
+     lands at ~13:1 contrast, well past what white-on-green could reach. The
+     glow is layered (tight core, wider halo, inner highlight) because a
+     single shadow reads as a drop shadow, not as light. */
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-primary-700 shadow-medium hover:shadow-large transform hover:-translate-y-0.5;
+    @apply bg-gradient-to-r from-primary-400 to-secondary-400 text-neutral-50 px-4 py-2 rounded-lg font-semibold
+           border border-primary-400 shadow-neon-green
+           transition-all duration-200 transform
+           hover:shadow-neon-green-lg hover:-translate-y-0.5 hover:brightness-110;
   }
 
   .btn-outline {
-    @apply border border-primary-600 text-primary-600 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-primary-600 hover:text-white;
+    @apply border border-primary-400 text-primary-400 px-4 py-2 rounded-lg font-medium
+           transition-all duration-200
+           hover:bg-primary-400 hover:text-neutral-50 hover:shadow-neon-green;
   }
 
   .text-gradient-primary {
-    @apply bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent;
+  }
+
+  /* Product/content card. The spring easing overshoots slightly on the way
+     up, which is what makes the lift read as snappy rather than sluggish. */
+  .card-game {
+    @apply bg-neutral-200 border border-neutral-300 rounded-xl transition-all duration-300;
+    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .card-game:hover {
+    @apply border-secondary-400 shadow-neon-cyan -translate-y-2;
+  }
+
+  /* Status badges. Colour carries the meaning on its own, so each also states
+     it in text - a glow alone is not an accessible signal. */
+  .badge-stock {
+    @apply inline-block px-2 py-1 rounded text-[11px] font-semibold uppercase tracking-wide
+           bg-primary-400/10 border border-primary-400 text-primary-400;
+  }
+
+  .badge-limited {
+    @apply inline-block px-2 py-1 rounded text-[11px] font-semibold uppercase tracking-wide
+           bg-gaming-orange/10 border border-gaming-orange text-gaming-orange;
+  }
+
+  /* Pixel accent. Deliberately capped tiny and tracking-tight - Press Start 2P
+     is unreadable as body copy, so it is only ever a garnish on short labels. */
+  .text-pixel {
+    @apply font-pixel text-[10px] leading-relaxed;
   }
 
   /* Hide scrollbar utilities */
@@ -64,5 +103,20 @@
 
   .container-padding {
     @apply px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* The glow and lift effects are decorative; anyone who has asked the OS for
+   less motion gets the same layout with the movement removed. Colour and
+   border changes stay, so hover still gives feedback. */
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary:hover,
+  .btn-outline:hover,
+  .card-game:hover {
+    transform: none;
+  }
+
+  .card-game {
+    transition-duration: 0.01ms;
   }
 }
