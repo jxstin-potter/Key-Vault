@@ -37,11 +37,35 @@ if (!PORT) {
   process.exit(1);
 }
 
-// Rate limiting
+// Render terminates TLS at a proxy, so without this every request arrives
+// looking like it came from that proxy and express-rate-limit buckets the
+// entire internet together - one visitor could 429 everybody. Trust exactly one
+// hop; trusting all of them would let a client forge X-Forwarded-For and dodge
+// the limit entirely.
+app.set('trust proxy', 1);
+
+// General API traffic. The old limit was 100 per 15 minutes across every route,
+// which the admin area alone could exhaust - Analytics issues six requests on
+// load, and once the budget was gone every route 429'd, login included.
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests, please slow down and try again shortly.' }
+});
+
+// Auth is the one place a tight limit genuinely matters, because that is what
+// makes password guessing expensive. Sharing a single budget with ordinary
+// reads meant normal browsing could lock out real sign-ins while doing nothing
+// to slow a focused attacker down.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // only failed attempts count toward the limit
+  message: { message: 'Too many login attempts. Please wait a few minutes and try again.' }
 });
 
 // Middleware
@@ -178,7 +202,7 @@ app.get('/api/docs', (req, res) => {
 });
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', authenticateToken, orderRoutes);

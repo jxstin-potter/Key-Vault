@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Bell,
   User,
-  BarChart3
+  BarChart3,
+  Store
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { cn } from '../../lib/utils';
@@ -88,12 +89,14 @@ export default function AdminLayout() {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-neutral-200">
-            <div className="flex items-center space-x-3">
+            <Link to="/" className="flex items-center space-x-3 group" title="Back to KeyVault">
               <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">KV</span>
               </div>
-              <span className="text-xl font-bold text-neutral-900">Admin</span>
-            </div>
+              <span className="text-xl font-bold text-neutral-900 group-hover:text-primary-600 transition-colors">
+                Admin
+              </span>
+            </Link>
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden p-1 rounded-md text-neutral-400 hover:text-neutral-600"
@@ -123,6 +126,17 @@ export default function AdminLayout() {
               );
             })}
           </nav>
+
+          {/* Back to the storefront */}
+          <div className="px-4 pb-4">
+            <Link
+              to="/"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200 transition-colors"
+            >
+              <Store size={18} />
+              Back to store
+            </Link>
+          </div>
 
           {/* User section */}
           <div className="border-t border-neutral-200 p-4">
