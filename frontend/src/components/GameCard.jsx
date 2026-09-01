@@ -44,7 +44,7 @@ export default function GameCard({ product, onAddToCart }) {
   };
 
   return (
-    <div className="group relative flex flex-col bg-neutral-100 rounded-xl border border-neutral-200 overflow-hidden hover:shadow-medium hover:-translate-y-0.5 transition-all duration-200">
+    <div className="card-game group relative flex flex-col bg-neutral-100 overflow-hidden">
       <Link to={`/products/${product.id}`} className="flex flex-col flex-1">
         <div className="relative aspect-[2/3] overflow-hidden bg-neutral-200">
           {image && !imgFailed ? (
@@ -71,12 +71,12 @@ export default function GameCard({ product, onAddToCart }) {
           </span>
 
           {outOfStock && (
-            <span className="absolute top-2 right-2 bg-error-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
+            <span className="badge-out absolute top-2 right-2">
               Out of Stock
             </span>
           )}
           {lowStock && (
-            <span className="absolute top-2 right-2 bg-yellow-500 text-white px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
+            <span className="badge-limited absolute top-2 right-2">
               Only {product.stock} left
             </span>
           )}
@@ -84,7 +84,10 @@ export default function GameCard({ product, onAddToCart }) {
 
         <div className="p-3 pb-0 flex-1">
           <div className="flex items-center gap-1 mb-1.5">
-            <span className="text-[10px] font-medium text-primary-700 bg-primary-100 px-1.5 py-0.5 rounded">
+            {/* Tinted rather than plated: this one sits on the card surface,
+                not over the artwork, so it does not need an opaque backdrop -
+                and a light chip here would outshout the stock badge. */}
+            <span className="text-[10px] font-medium text-primary-400 bg-primary-400/10 border border-primary-400/30 px-1.5 py-0.5 rounded">
               {product.category?.name || 'General'}
             </span>
             {product.region && (

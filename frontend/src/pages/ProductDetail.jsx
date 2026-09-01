@@ -180,14 +180,10 @@ export default function ProductDetail() {
             {/* Product Badges */}
             <div className="flex items-center gap-2 mb-4">
               {product.stock === 0 && (
-                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  Out of Stock
-                </span>
+                <span className="badge-out">Out of Stock</span>
               )}
               {product.stock > 0 && product.stock < 10 && (
-                <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  Low Stock
-                </span>
+                <span className="badge-limited">Low Stock</span>
               )}
             </div>
 
@@ -285,11 +281,11 @@ export default function ProductDetail() {
             {/* Stock Status */}
             <div className="flex items-center gap-4">
               {product.stock > 0 ? (
-                <span className="text-xs text-success-700 bg-success-100 px-2 py-1 rounded-full font-medium">
+                <span className="badge-stock">
                   In Stock ({product.stock} {product.stock === 1 ? 'key' : 'keys'})
                 </span>
               ) : (
-                <span className="text-xs text-error-700 bg-error-100 px-2 py-1 rounded-full font-medium">Out of Stock</span>
+                <span className="badge-out">Out of Stock</span>
               )}
               
               {isProductInCart && (
