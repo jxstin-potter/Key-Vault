@@ -22,6 +22,7 @@ import { authenticateToken } from './middleware/auth.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { mountApiDocs } from './docs/index.js';
+import logger from './lib/logger.js';
 
 /**
  * Build the Express application.
@@ -80,8 +81,27 @@ export function createApp(options = {}) {
   const loginLimiter = rateLimitEnabled ? authLimiter : passThrough;
 
   app.use(helmet());
+
+  // CORS origin validation. Accepts a function so we can normalize both the
+  // configured origin and the incoming request origin - removing trailing
+  // slashes, etc. - to prevent silent failures when env vars have minor
+  // formatting differences. A CORS block is logged so misconfigurations are
+  // visible in the logs rather than silently killing the storefront.
+  const configuredOrigin = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
   app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Normalize: remove trailing slash, lowercase for comparison
+      const normalizedOrigin = (origin || '').replace(/\/$/, '').toLowerCase();
+      const normalizedConfigured = configuredOrigin.toLowerCase();
+
+      if (normalizedOrigin === normalizedConfigured || !origin) {
+        // origin is undefined on same-origin requests (e.g. server->server)
+        callback(null, true);
+      } else {
+        logger.warn({ origin, configured: configuredOrigin }, 'CORS origin rejected');
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true
   }));
 
