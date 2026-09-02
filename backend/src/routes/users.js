@@ -73,16 +73,27 @@ router.get('/', requireAdmin, async (req, res) => {
 });
 
 /**
+ * @route GET /api/users/info
+ * @access Authenticated (this whole router is mounted behind
+ *   authenticateToken in app.js; unlike most other routes here, no
+ *   requireAdmin check is layered on top of that for this one)
+ * @description Static usage hint for this router. Registered before the
+ *   parameterised '/:id' route below - Express matches path routes in
+ *   registration order, so a literal path like this one must come first or
+ *   '/:id' would swallow it (matching with `id: 'info'`) before it ever got
+ *   a chance to run.
+ * @returns {200} `{ message }`.
+ */
+router.get('/info', (req, res) => {
+  res.json({
+    message: 'GET /api/users returns user info (admin only). Use POST, PUT, DELETE for user actions.'
+  });
+});
+
+/**
  * @route GET /api/users/:id
  * @access Admin only
  * @description Fetch one user's profile, full order history, and reviews.
- *
- *   ROUTE ORDER CAVEAT: because this is registered before the literal
- *   '/info' route below, a request to GET /api/users/info matches here
- *   first with `id: 'info'`, not the intended usage-hint handler - it hits
- *   this handler's admin check and 404s rather than returning the info
- *   message. '/me/stats' is unaffected (two path segments, this route only
- *   matches one). Documented as-is; not fixed here.
  * @param {string} req.params.id - User id.
  * @returns {200} `{ user }` including `orderCount` and `reviewCount`.
  * @returns {404} User not found.
@@ -197,20 +208,6 @@ router.put('/:id/role', requireAdmin, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Failed to update user role' });
   }
-});
-
-/**
- * @route GET /api/users/info
- * @access Intended: public usage hint. Actual: unreachable - see the route
- *   order caveat on GET /:id above; `/:id` is registered first and swallows
- *   this path with `id: 'info'`.
- * @description Static usage hint for this router (never actually reached).
- * @returns {200} `{ message }`.
- */
-router.get('/info', (req, res) => {
-  res.json({
-    message: 'GET /api/users returns user info (admin only). Use POST, PUT, DELETE for user actions.'
-  });
 });
 
 /**

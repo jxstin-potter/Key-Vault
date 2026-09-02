@@ -67,6 +67,27 @@ describe('admin-only endpoints', () => {
   });
 });
 
+describe('route registration order', () => {
+  // GET /:id is registered in routes/users.js as an admin-only lookup by user
+  // id. Express matches path routes in registration order, so a literal path
+  // like '/info' has to be registered ABOVE '/:id' or it gets swallowed -
+  // '/api/users/info' would match '/:id' first with id: 'info', hit the admin
+  // check meant for real lookups, and never reach the intended handler. This
+  // pins that ordering down so a future route addition can't silently
+  // reintroduce it.
+  it('GET /api/users/info reaches its own handler, not the /:id lookup', async () => {
+    const user = await createUser();
+    const res = await request(app).get('/api/users/info').set(authHeader(user));
+
+    // A non-admin would get 403 here if '/:id' had intercepted the request:
+    // that route's requireAdmin middleware runs before its handler ever sees
+    // id: 'info', so a regression would surface as a 403 for a plain user,
+    // not as some obviously-wrong 404.
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/api\/users/i);
+  });
+});
+
 describe('token handling', () => {
   it('rejects a token signed with the wrong secret', async () => {
     const user = await createUser();
