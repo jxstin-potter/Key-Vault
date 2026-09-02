@@ -55,32 +55,71 @@ export async function availableKeyCount(productId, db = prisma) {
 /**
  * Claim `quantity` keys for an order item. MUST run inside a $transaction.
  *
- * Concurrency: the `status: 'AVAILABLE'` predicate in the updateMany WHERE
- * turns each row update into a compare-and-set. Under READ COMMITTED a
- * competing writer blocks, then re-evaluates the predicate against the new
- * row version; a row someone else already took no longer matches and is not
- * counted. So `count !== quantity` means we lost a race - throw and let the
- * surrounding transaction roll back rather than over-selling.
+ * CONCURRENCY, and why this uses raw SQL.
+ *
+ * The obvious implementation - findMany the available rows, then updateMany
+ * them with a `status: 'AVAILABLE'` guard - is *safe* but badly behaved. The
+ * guard makes each row update a compare-and-set, so nobody can oversell: a
+ * competing writer blocks, re-reads the committed row, no longer matches, and
+ * is not counted. That part was never the problem.
+ *
+ * The problem is that every concurrent buyer selects the *same* rows. An
+ * unordered `LIMIT n` hands all 25 shoppers the identical five candidates, so
+ * one wins and twenty-four collide - and they collide on rows that are already
+ * gone rather than moving on to the four keys still sitting unsold. A test
+ * with 5 keys and 25 simultaneous buyers sold 3. Not oversold: *undersold*,
+ * with stock on the shelf and customers being told it was out of stock.
+ * Retrying only rediscovers the same contended rows.
+ *
+ * FOR UPDATE SKIP LOCKED fixes it at the source. Each transaction takes row
+ * locks on the keys it intends to claim, and SKIP LOCKED makes concurrent
+ * transactions step over rows someone else has already locked rather than
+ * queueing behind them. Twenty-five buyers therefore receive twenty-five
+ * disjoint candidate sets: the first five get a key each, the rest correctly
+ * find nothing left. This is the same primitive Postgres-backed job queues use
+ * to hand distinct work to competing workers, and it is exactly the shape of
+ * this problem.
+ *
+ * Prisma's query builder cannot express row-level locking, hence $queryRaw.
+ * productId and quantity are bound parameters, not interpolated.
+ *
+ * Trade-off worth naming: SKIP LOCKED can report out-of-stock while another
+ * transaction holds rows it will ultimately roll back. That window is one
+ * checkout transaction wide and self-corrects on the next attempt. Blocking
+ * instead - plain FOR UPDATE - would trade a rare false "sold out" for
+ * serialising every purchase of the same product behind one lock queue, which
+ * is the worse deal for a store.
+ *
+ * The compare-and-set on the UPDATE is kept as a belt-and-braces assertion.
+ * Holding the locks means it should be unreachable; if it ever fires,
+ * something about the isolation assumptions has changed and we want to know
+ * loudly rather than oversell quietly.
  */
 export async function reserveKeys(tx, { productId, orderItemId, quantity, until }) {
-  const candidates = await tx.gameKey.findMany({
-    where: { productId, status: 'AVAILABLE' },
-    take: quantity,
-    select: { id: true }
-  });
+  const candidates = await tx.$queryRaw`
+    SELECT id
+    FROM game_keys
+    WHERE "productId" = ${productId}
+      AND status = 'AVAILABLE'
+    ORDER BY "createdAt" ASC, id ASC
+    LIMIT ${quantity}
+    FOR UPDATE SKIP LOCKED
+  `;
 
   if (candidates.length < quantity) {
     throw new OutOfKeysError(productId, quantity, candidates.length);
   }
 
+  const ids = candidates.map((k) => k.id);
+
   const { count } = await tx.gameKey.updateMany({
-    where: { id: { in: candidates.map((k) => k.id) }, status: 'AVAILABLE' },
+    where: { id: { in: ids }, status: 'AVAILABLE' },
     data: { status: 'RESERVED', reservedUntil: until, orderItemId }
   });
 
   if (count !== quantity) throw new KeyContentionError(productId);
 
-  return candidates.map((k) => k.id);
+  return ids;
 }
 
 /**

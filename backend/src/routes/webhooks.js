@@ -1,6 +1,8 @@
 import express from 'express';
 import stripe, { isStripeConfigured } from '../lib/stripe.js';
+import prisma from '../lib/prisma.js';
 import { fulfillOrder, abandonOrder } from '../lib/fulfillment.js';
+import { markOrderRefunded } from '../lib/refunds.js';
 
 const router = express.Router();
 
@@ -85,6 +87,42 @@ router.post('/', async (req, res) => {
         const session = event.data.object;
         const orderId = session.metadata?.orderId || session.client_reference_id;
         if (orderId) await abandonOrder(orderId, 'FAILED');
+        break;
+      }
+
+      // A refund can start in the Stripe dashboard rather than in our admin
+      // area - a support agent handling a chargeback, say. Without this case
+      // the money would go back and our database would still show the order
+      // COMPLETED with working keys. It is also the reconciliation path for a
+      // refund that succeeded at Stripe but failed to record here.
+      case 'charge.refunded': {
+        const charge = event.data.object;
+        const paymentIntentId =
+          typeof charge.payment_intent === 'string' ? charge.payment_intent : null;
+
+        if (!paymentIntentId) {
+          console.error('charge.refunded with no payment_intent', charge.id);
+          break;
+        }
+
+        const order = await prisma.order.findFirst({
+          where: { paymentIntent: paymentIntentId },
+          select: { id: true }
+        });
+
+        if (!order) {
+          // Not necessarily an error: the charge may belong to another system
+          // sharing this Stripe account.
+          console.warn(`charge.refunded for unknown payment intent ${paymentIntentId}`);
+          break;
+        }
+
+        const result = await markOrderRefunded(order.id, { refundId: charge.id });
+        console.log(
+          result.alreadyRefunded
+            ? `Order ${order.id} already refunded - duplicate delivery ignored`
+            : `Order ${order.id} refunded, ${result.revokedKeys} keys revoked`
+        );
         break;
       }
 

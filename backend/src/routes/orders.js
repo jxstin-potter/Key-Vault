@@ -1,6 +1,7 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import prisma from '../lib/prisma.js';
+import { refundOrder, RefundNotAllowedError, RefundGatewayError } from '../lib/refunds.js';
 
 const router = express.Router();
 
@@ -174,6 +175,34 @@ router.put('/:id/status', [
       return res.status(404).json({ message: 'Order not found' });
     }
 
+    // REFUNDED is not a label, it is an action. Writing the column directly
+    // would tell the customer they had been refunded while their money stayed
+    // taken and their keys kept working - which is what this endpoint used to
+    // do. Route it through the refund service, which moves the money at Stripe
+    // and revokes the delivered keys.
+    if (status === 'REFUNDED') {
+      const result = await refundOrder(id);
+
+      const refreshed = await prisma.order.findUnique({
+        where: { id },
+        include: {
+          user: { select: { firstName: true, lastName: true, email: true } },
+          orderItems: {
+            include: { product: { select: { id: true, name: true, images: true } } }
+          }
+        }
+      });
+
+      return res.json({
+        message: result.alreadyRefunded
+          ? 'Order was already refunded'
+          : `Order refunded and ${result.revokedKeys} key(s) revoked`,
+        order: refreshed,
+        revokedKeys: result.revokedKeys,
+        alreadyRefunded: !!result.alreadyRefunded
+      });
+    }
+
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: { status },
@@ -204,6 +233,16 @@ router.put('/:id/status', [
       order: updatedOrder
     });
   } catch (error) {
+    if (error instanceof RefundNotAllowedError) {
+      return res.status(409).json({ message: error.message });
+    }
+    // The refund failed upstream, at Stripe. 502 rather than 500 so the
+    // operator can tell "our bug" from "the payment provider said no" without
+    // reading logs.
+    if (error instanceof RefundGatewayError) {
+      return res.status(502).json({ message: 'The payment provider rejected the refund' });
+    }
+    req.log?.error({ err: error, orderId: req.params.id }, 'Failed to update order status');
     res.status(500).json({ message: 'Failed to update order status' });
   }
 });
