@@ -53,7 +53,6 @@ router.get('/', requireAdmin, async (req, res) => {
         totalOrders: user._count.orders,
         averageOrderValue: Math.round(averageOrderValue * 100) / 100,
         status: user.role === 'ADMIN' ? 'admin' : 'active', // Simple status logic
-        phone: 'N/A', // Placeholder since we don't have phone in schema
         orders: undefined, // Remove orders array to keep response clean
       _count: undefined
       };

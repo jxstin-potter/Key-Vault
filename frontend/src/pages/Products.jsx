@@ -168,6 +168,7 @@ export default function Products() {
             <input
               type="text"
               placeholder="Search games..."
+                aria-label="Search games"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-neutral-100 border border-neutral-300 rounded-lg text-neutral-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"

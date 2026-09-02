@@ -109,6 +109,7 @@ export default function Profile() {
                         onChange={handleInputChange}
                         className="px-3 py-1 border border-neutral-300 rounded text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         placeholder="First name"
+                aria-label="First name"
                       />
                       <input
                         type="text"
@@ -117,6 +118,7 @@ export default function Profile() {
                         onChange={handleInputChange}
                         className="px-3 py-1 border border-neutral-300 rounded text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         placeholder="Last name"
+                aria-label="Last name"
                       />
                     </div>
                   ) : (

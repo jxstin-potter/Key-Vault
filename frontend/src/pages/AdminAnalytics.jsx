@@ -208,10 +208,8 @@ const AdminAnalytics = () => {
   const Filters = (
     <div className="flex flex-wrap gap-4 items-end mb-4">
       <div>
-        <label className="block text-xs font-medium text-neutral-600 mb-1">
-          Start Date
-        </label>
-        <input
+        <label htmlFor="start-date" className="block text-xs font-medium text-neutral-600 mb-1">Start Date</label>
+        <input id="start-date"
           type="date"
           className="border rounded px-2 py-1"
           value={dateRange.start}
@@ -221,10 +219,8 @@ const AdminAnalytics = () => {
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-neutral-600 mb-1">
-          End Date
-        </label>
-        <input
+        <label htmlFor="end-date" className="block text-xs font-medium text-neutral-600 mb-1">End Date</label>
+        <input id="end-date"
           type="date"
           className="border rounded px-2 py-1"
           value={dateRange.end}
@@ -232,10 +228,8 @@ const AdminAnalytics = () => {
         />
       </div>
       <div>
-        <label className="block text-xs font-medium text-neutral-600 mb-1">
-          Category
-        </label>
-        <select
+        <label htmlFor="category" className="block text-xs font-medium text-neutral-600 mb-1">Category</label>
+        <select id="category"
           className="border rounded px-2 py-1"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
@@ -249,10 +243,8 @@ const AdminAnalytics = () => {
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-neutral-600 mb-1">
-          Product
-        </label>
-        <select
+        <label htmlFor="product" className="block text-xs font-medium text-neutral-600 mb-1">Product</label>
+        <select id="product"
           className="border rounded px-2 py-1"
           value={productId}
           onChange={(e) => setProductId(e.target.value)}

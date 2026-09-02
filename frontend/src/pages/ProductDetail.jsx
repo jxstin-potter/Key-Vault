@@ -396,14 +396,6 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Recommended Products Placeholder */}
-      <div className="max-w-6xl mx-auto mt-24">
-        <h2 className="text-2xl font-light text-neutral-900 mb-8 tracking-tight">Recommended Products</h2>
-        <div className="bg-neutral-100 rounded-xl p-12 text-neutral-400 text-center text-lg">
-          (Recommended products carousel coming soon)
-        </div>
-      </div>
-
       {/* Floating Cart Preview. Anchored left: the buy box is sticky to the
           bottom of the content column, so a bottom-right float sits on top of
           its Update Cart / Remove buttons. */}

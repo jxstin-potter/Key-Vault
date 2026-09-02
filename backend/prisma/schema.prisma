@@ -110,7 +110,6 @@ model Order {
   userId          String
   status          OrderStatus @default(PENDING)
   total           Decimal     @db.Decimal(10, 2)
-  shippingAddress Json?       // legacy physical-goods field; unused for digital keys
   stripeSessionId String?     @unique
   paymentIntent   String?     // Stripe PaymentIntent id
   paidAt          DateTime?
