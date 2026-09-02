@@ -4,6 +4,11 @@ import { logger } from './logger.js';
 
 /** The order is not in a state where a refund makes sense. */
 export class RefundNotAllowedError extends Error {
+  /**
+   * @param {string} orderId - Order that cannot be refunded.
+   * @param {string|null} status - The order's current status, or null if not found.
+   * @param {string} detail - Human-readable reason, used as the error message.
+   */
   constructor(orderId, status, detail) {
     super(detail);
     this.name = 'RefundNotAllowedError';
@@ -14,6 +19,10 @@ export class RefundNotAllowedError extends Error {
 
 /** Stripe rejected the refund. Surfaces as a 502 - the failure is upstream. */
 export class RefundGatewayError extends Error {
+  /**
+   * @param {string} orderId - Order whose Stripe refund call failed.
+   * @param {Error} cause - The underlying error thrown by the Stripe SDK.
+   */
   constructor(orderId, cause) {
     super(`Stripe refused to refund order ${orderId}: ${cause.message}`);
     this.name = 'RefundGatewayError';
@@ -40,6 +49,23 @@ const REFUNDABLE_STATUSES = ['PAID', 'COMPLETED'];
  * burned, turning one refund into a second angry customer. Revoked keys stay
  * in the table as a record of what was issued, and are excluded from stock
  * because stock only ever counts AVAILABLE rows.
+ *
+ * This function only touches our own database - it does not call Stripe.
+ * It is the second half of refundOrder() below, and is also called directly
+ * by the webhook handler for charge.refunded (a refund initiated from the
+ * Stripe dashboard rather than through our API), which is why it exists as
+ * its own exported function rather than being inlined into refundOrder().
+ *
+ * @param {string} orderId - The order to mark refunded.
+ * @param {object} [options]
+ * @param {string} [options.refundId] - Stripe refund id, recorded in the log
+ *   line for traceability. Omitted when called without a Stripe refund
+ *   (e.g. an order with no payment intent on record).
+ * @returns {Promise<{refunded: boolean, alreadyRefunded?: boolean, revokedKeys: number}>}
+ *   `{ refunded: false, alreadyRefunded: true, revokedKeys: 0 }` if the order
+ *   was not in a refundable status (already refunded, or never paid);
+ *   otherwise `{ refunded: true, revokedKeys }` with the count of keys
+ *   moved from SOLD to REVOKED.
  */
 export async function markOrderRefunded(orderId, { refundId } = {}) {
   return prisma.$transaction(async (tx) => {
@@ -90,6 +116,16 @@ export async function markOrderRefunded(orderId, { refundId } = {}) {
  * The idempotency key makes the Stripe half safe to retry: two clicks on
  * "refund" send the same key, and Stripe returns the original refund instead
  * of issuing a second one.
+ *
+ * @param {string} orderId - The order to refund.
+ * @returns {Promise<{refunded: boolean, alreadyRefunded?: boolean, revokedKeys: number}>}
+ *   See markOrderRefunded() for the shape - this function delegates to it
+ *   for the database half after the Stripe call (if any) succeeds.
+ * @throws {RefundNotAllowedError} The order doesn't exist, or its status
+ *   isn't PAID/COMPLETED (already refunded orders return normally instead;
+ *   see the early-return above).
+ * @throws {RefundGatewayError} Stripe rejected the refund call. Nothing in
+ *   our database has changed at this point - see the ordering rationale above.
  */
 export async function refundOrder(orderId) {
   const order = await prisma.order.findUnique({

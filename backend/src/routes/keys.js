@@ -8,9 +8,15 @@ const router = express.Router();
 // NOTE ON ROUTE ORDER: Express matches in registration order, so every literal
 // path below must stay above the parameterised '/:id' route at the bottom.
 
-// ---------------------------------------------------------------------------
-// GET /api/keys/mine - the caller's purchased keys, grouped by order
-// ---------------------------------------------------------------------------
+/**
+ * @route GET /api/keys/mine
+ * @access Authenticated
+ * @description The caller's own purchased (SOLD) keys, grouped by the order
+ *   that delivered them. Scoped hard to `req.user.id` via the relation
+ *   filter - never trusts a client-supplied user id.
+ * @returns {200} `{ orders, keyCount }` - `orders` is one entry per purchase,
+ *   each with its `keys` (code, product, sold date); newest purchase first.
+ */
 router.get('/mine', async (req, res) => {
   try {
     const keys = await prisma.gameKey.findMany({
@@ -68,9 +74,17 @@ router.get('/mine', async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// GET /api/keys/inventory - per-product key counts by status (admin)
-// ---------------------------------------------------------------------------
+/**
+ * @route GET /api/keys/inventory
+ * @access Admin only
+ * @description Per-product key counts broken down by status - the admin
+ *   view into what a plain "stock" number can't show: how many keys are
+ *   AVAILABLE vs. currently RESERVED (held in open checkouts) vs. SOLD vs.
+ *   REVOKED (refunded).
+ * @returns {200} `{ inventory }` - keyed by productId, each value
+ *   `{ available, reserved, sold, revoked, total }`.
+ * @returns {403} Caller is not an admin.
+ */
 router.get('/inventory', requireAdmin, async (req, res) => {
   try {
     const grouped = await prisma.gameKey.groupBy({
@@ -91,9 +105,15 @@ router.get('/inventory', requireAdmin, async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// GET /api/keys/product/:productId - every key for one product (admin)
-// ---------------------------------------------------------------------------
+/**
+ * @route GET /api/keys/product/:productId
+ * @access Admin only
+ * @description Every key row for one product, in every status, including
+ *   the redeemable code - the admin drill-down behind the /inventory summary.
+ * @param {string} req.params.productId
+ * @returns {200} `{ keys }` sorted by status then newest-created first.
+ * @returns {403} Caller is not an admin.
+ */
 router.get('/product/:productId', requireAdmin, async (req, res) => {
   try {
     const keys = await prisma.gameKey.findMany({
@@ -107,9 +127,24 @@ router.get('/product/:productId', requireAdmin, async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// POST /api/keys/bulk - add a batch of codes to a product (admin)
-// ---------------------------------------------------------------------------
+/**
+ * @route POST /api/keys/bulk
+ * @access Admin only
+ * @description Add a batch of redeemable codes to a product's AVAILABLE
+ *   pool. This is how inventory actually gets created - a product listing
+ *   (routes/products.js POST /) and its sellable keys are separate
+ *   operations, since a product can legitimately exist with zero keys
+ *   (simply out of stock) until this endpoint is called.
+ * @param {string} req.body.productId
+ * @param {string[]} req.body.codes - Raw codes; trimmed, blanks dropped, and
+ *   de-duplicated within the submission before insertion. Codes already
+ *   present in the database (`skipDuplicates`) are silently skipped rather
+ *   than erroring the whole batch.
+ * @returns {201} `{ message, added, skipped }`.
+ * @returns {400} Validation failed, or every submitted code was blank/duplicate.
+ * @returns {403} Caller is not an admin.
+ * @returns {404} `productId` doesn't match a real product.
+ */
 router.post(
   '/bulk',
   requireAdmin,
@@ -156,9 +191,19 @@ router.post(
   }
 );
 
-// ---------------------------------------------------------------------------
-// DELETE /api/keys/:id - remove an unsold key (admin)
-// ---------------------------------------------------------------------------
+/**
+ * @route DELETE /api/keys/:id
+ * @access Admin only
+ * @description Permanently remove a single key row. Restricted to AVAILABLE
+ *   keys only: deleting a SOLD key would destroy a customer's purchase
+ *   record, and deleting a RESERVED one would pull it out from under an open
+ *   checkout mid-payment.
+ * @param {string} req.params.id - Key id.
+ * @returns {200} `{ message }`.
+ * @returns {403} Caller is not an admin.
+ * @returns {404} Key not found.
+ * @returns {409} Key exists but is not AVAILABLE (currently RESERVED, SOLD, or REVOKED).
+ */
 router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const key = await prisma.gameKey.findUnique({

@@ -18,6 +18,15 @@ import { logger } from '../lib/logger.js';
 export const requestLogger = pinoHttp({
   logger,
 
+  /**
+   * Assigns each request its correlation id. Reuses an inbound X-Request-Id
+   * header if the caller (a proxy, or a client retrying a request) already
+   * supplied one, so the same id can be traced across hops; otherwise mints
+   * a fresh UUID. Always echoes the chosen id back as a response header.
+   * @param {import('http').IncomingMessage} req
+   * @param {import('http').ServerResponse} res
+   * @returns {string} The request's correlation id.
+   */
   genReqId: (req, res) => {
     const existing = req.headers['x-request-id'];
     const id = typeof existing === 'string' && existing.length > 0 ? existing : randomUUID();
@@ -31,8 +40,15 @@ export const requestLogger = pinoHttp({
     ignore: (req) => req.url === '/health' || req.url === '/'
   },
 
-  // A 404 or a rejected login is expected traffic, not an incident. Reserving
-  // `error` for genuine 5xx keeps error-rate alerting meaningful.
+  /**
+   * Picks the pino level for a finished request. A 404 or a rejected login
+   * is expected traffic, not an incident - reserving `error` for genuine 5xx
+   * (or a thrown error) keeps error-rate alerting meaningful.
+   * @param {import('http').IncomingMessage} req
+   * @param {import('http').ServerResponse} res
+   * @param {Error} [err]
+   * @returns {'error'|'warn'|'info'}
+   */
   customLogLevel: (req, res, err) => {
     if (err || res.statusCode >= 500) return 'error';
     if (res.statusCode >= 400) return 'warn';

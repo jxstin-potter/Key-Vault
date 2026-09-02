@@ -38,6 +38,9 @@ import logger from './lib/logger.js';
  *   default: the auth limiter allows 20 failures per 15 minutes, which a suite
  *   exercising invalid-credential paths blows through in seconds, and the
  *   resulting 429s would look like auth bugs.
+ * @returns {import('express').Express} A fully configured Express app,
+ *   middleware and routes mounted, ready to either `.listen()` (see
+ *   server.js) or be passed directly to supertest.
  */
 export function createApp(options = {}) {
   const { rateLimit: rateLimitEnabled = process.env.NODE_ENV !== 'test' } = options;
@@ -118,7 +121,13 @@ export function createApp(options = {}) {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
 
-  // Root endpoint - Welcome message
+  /**
+   * @route GET /
+   * @access Public
+   * @description Root landing endpoint - a friendly pointer to the real
+   *   endpoints for anyone who hits the bare API origin directly.
+   * @returns {200} `{ message, version, endpoints, timestamp }`.
+   */
   app.get('/', (req, res) => {
     res.json({
       message: '🚀 KeyVault API is running!',
@@ -132,10 +141,17 @@ export function createApp(options = {}) {
     });
   });
 
-  // Liveness probe. Deliberately does NOT touch the database: Render restarts
-  // the instance when this fails, and a brief database blip is not a reason to
-  // cycle a process that is otherwise serving cached and static routes fine.
-  // Use /health/ready for the dependency check.
+  /**
+   * @route GET /health
+   * @access Public
+   * @description Liveness probe. Deliberately does NOT touch the database:
+   *   Render restarts the instance when this fails, and a brief database
+   *   blip is not a reason to cycle a process that is otherwise serving
+   *   cached and static routes fine. Use /health/ready for the dependency check.
+   * @returns {200} `{ status: 'OK', timestamp, environment, database, jwt, uptime }` -
+   *   `database`/`jwt` are booleans indicating whether those env vars are
+   *   *set*, not whether they're reachable/valid.
+   */
   app.get('/health', (req, res) => {
     res.json({
       status: 'OK',
@@ -147,9 +163,18 @@ export function createApp(options = {}) {
     });
   });
 
-  // Readiness probe: actually round-trips the database. This is the one to
-  // watch in a dashboard, and the one that tells you a deploy is genuinely
-  // able to serve traffic rather than merely running.
+  /**
+   * @route GET /health/ready
+   * @access Public
+   * @description Readiness probe: actually round-trips the database
+   *   (`SELECT 1`). This is the one to watch in a dashboard, and the one
+   *   that tells you a deploy is genuinely able to serve traffic rather
+   *   than merely running.
+   * @returns {200} `{ status: 'ready', database: 'connected' }`.
+   * @returns {503} `{ status: 'not_ready', database: 'unreachable', code }` -
+   *   the database is unreachable; `code` is Prisma's error code (e.g.
+   *   'P1001').
+   */
   app.get('/health/ready', async (req, res) => {
     try {
       await prisma.$queryRaw`SELECT 1`;
@@ -164,7 +189,13 @@ export function createApp(options = {}) {
     }
   });
 
-  // API base endpoint
+  /**
+   * @route GET /api
+   * @access Public
+   * @description API base endpoint - a pointer to docs and health, for
+   *   anyone probing `/api` directly.
+   * @returns {200} `{ message, version, docs, health }`.
+   */
   app.get('/api', (req, res) => {
     res.json({
       message: 'KeyVault API',

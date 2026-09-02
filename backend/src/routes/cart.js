@@ -23,15 +23,35 @@ const productSelect = {
   _count: AVAILABLE_KEYS
 };
 
+/**
+ * Reshape a Prisma product (queried with `_count: AVAILABLE_KEYS`) into the
+ * client-facing shape, replacing the Prisma count wrapper with a plain
+ * `stock` number. Same helper pattern as routes/products.js.
+ * @param {object|null} product
+ * @returns {object|null}
+ */
 const withStock = (product) => {
   if (!product) return product;
   const { _count, ...rest } = product;
   return { ...rest, stock: _count?.gameKeys ?? 0 };
 };
 
+/**
+ * Apply withStock() to the nested product on one cart item.
+ * @param {object} item - A cart item with an included `product`.
+ * @returns {object} The same item with `product` reshaped via withStock().
+ */
 const itemWithStock = (item) => ({ ...item, product: withStock(item.product) });
 
-// Get user's cart
+/**
+ * @route GET /api/cart
+ * @access Authenticated
+ * @description The caller's cart contents. Items whose product has since
+ *   been deactivated are silently filtered out rather than shown as broken
+ *   rows - the underlying cartItem is left in the database in case the
+ *   product is reactivated later.
+ * @returns {200} `{ items, total, itemCount }`.
+ */
 router.get('/', async (req, res) => {
   try {
     const cartItems = await prisma.cartItem.findMany({
@@ -62,14 +82,33 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Add GET /info for demo
+/**
+ * @route GET /api/cart/info
+ * @access Authenticated
+ * @description Static usage hint for this router.
+ * @returns {200} `{ message }`.
+ */
 router.get('/info', (req, res) => {
   res.json({
     message: 'GET /api/cart returns the user cart (requires auth). Use POST, PUT, DELETE for cart actions.'
   });
 });
 
-// Add item to cart
+/**
+ * @route POST /api/cart/add
+ * @access Authenticated
+ * @description Add a product to the cart, or increase quantity if it's
+ *   already present (unique on `(userId, productId)`, so "add" and
+ *   "increase" are the same operation here). Stock is checked against the
+ *   live AVAILABLE key count both for a fresh add and for the resulting
+ *   combined quantity when merging into an existing line.
+ * @param {string} req.body.productId
+ * @param {number} req.body.quantity - 1 to 99.
+ * @returns {201} `{ message, item }` - new cart line created.
+ * @returns {200} `{ message, item }` - existing line's quantity updated.
+ * @returns {400} Validation failed, or requested quantity exceeds available stock.
+ * @returns {404} Product doesn't exist or is inactive.
+ */
 router.post('/add', [
   body('productId').isString(),
   body('quantity').isInt({ min: 1, max: 99 })
@@ -155,7 +194,17 @@ router.post('/add', [
   }
 });
 
-// Update cart item quantity
+/**
+ * @route PUT /api/cart/update/:itemId
+ * @access Authenticated (own cart items only)
+ * @description Set a cart line to an exact quantity (not additive, unlike
+ *   POST /add).
+ * @param {string} req.params.itemId - Cart item id.
+ * @param {number} req.body.quantity - 1 to 99.
+ * @returns {200} `{ message, item }`.
+ * @returns {400} Validation failed, or quantity exceeds available stock.
+ * @returns {404} No such cart item, or it belongs to a different user.
+ */
 router.put('/update/:itemId', [
   body('quantity').isInt({ min: 1, max: 99 })
 ], async (req, res) => {
@@ -206,7 +255,14 @@ router.put('/update/:itemId', [
   }
 });
 
-// Remove item from cart
+/**
+ * @route DELETE /api/cart/remove/:itemId
+ * @access Authenticated (own cart items only)
+ * @description Remove a single line from the cart.
+ * @param {string} req.params.itemId - Cart item id.
+ * @returns {200} `{ message }`.
+ * @returns {404} No such cart item, or it belongs to a different user.
+ */
 router.delete('/remove/:itemId', async (req, res) => {
   try {
     const { itemId } = req.params;
@@ -233,7 +289,12 @@ router.delete('/remove/:itemId', async (req, res) => {
   }
 });
 
-// Clear cart
+/**
+ * @route DELETE /api/cart/clear
+ * @access Authenticated
+ * @description Remove every item from the caller's cart.
+ * @returns {200} `{ message }`.
+ */
 router.delete('/clear', async (req, res) => {
   try {
     await prisma.cartItem.deleteMany({

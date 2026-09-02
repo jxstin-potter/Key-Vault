@@ -1,7 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 
-// Singleton pattern for PrismaClient
-// Prevents multiple instances and connection pool exhaustion
+/**
+ * The shared PrismaClient singleton used throughout the backend.
+ *
+ * Constructed once at module load and reused everywhere (imported as `db`
+ * default in most lib/ functions), rather than instantiated per-request or
+ * per-module. PrismaClient opens and manages its own connection pool, so
+ * creating additional instances would exhaust Postgres's connection limit
+ * under load rather than sharing one pool efficiently.
+ *
+ * @type {import('@prisma/client').PrismaClient}
+ */
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   datasources: {
@@ -11,7 +20,9 @@ const prisma = new PrismaClient({
   },
 });
 
-// Test connection on initialization (non-blocking)
+// Test connection on initialization (non-blocking). Only in production: a
+// dev or test environment without a reachable database should fail loudly on
+// the first real query, not print a Render-specific diagnostic on every boot.
 if (process.env.NODE_ENV === 'production') {
   prisma.$connect()
     .then(() => {

@@ -9,6 +9,14 @@ const router = express.Router();
  * Product.averageRating and Product.reviewCount are denormalised so the
  * catalogue can sort by rating in SQL. They must be recomputed on every
  * review write, or ?sort=rating silently drifts out of date.
+ *
+ * Called after every create/update/delete below - there is no trigger doing
+ * this at the database level, so a code path that writes a review without
+ * calling this would leave the aggregate stale until the next write to the
+ * same product.
+ *
+ * @param {string} productId - Product whose aggregate rating to recompute.
+ * @returns {Promise<void>}
  */
 async function refreshProductRating(productId) {
   const agg = await prisma.review.aggregate({
@@ -26,7 +34,16 @@ async function refreshProductRating(productId) {
   });
 }
 
-// Get reviews for a product
+/**
+ * @route GET /api/reviews/product/:productId
+ * @access Public
+ * @description Paginated reviews for one product, each with the reviewer's
+ *   first/last name.
+ * @param {string} req.params.productId
+ * @param {number} [req.query.page=1]
+ * @param {number} [req.query.limit=10]
+ * @returns {200} `{ reviews, pagination: { page, limit, total, pages } }`.
+ */
 router.get('/product/:productId', async (req, res) => {
   try {
     const { productId } = req.params;
@@ -66,7 +83,20 @@ router.get('/product/:productId', async (req, res) => {
   }
 });
 
-// Create review
+/**
+ * @route POST /api/reviews
+ * @access Authenticated
+ * @description Create a review. One review per user per product, enforced
+ *   by a database unique constraint on `(userId, productId)` - checked here
+ *   for a friendly error message, but the constraint is the real guarantee
+ *   against a race between two concurrent submissions.
+ * @param {string} req.body.productId
+ * @param {number} req.body.rating - 1 to 5.
+ * @param {string} [req.body.comment] - Max 1000 characters.
+ * @returns {201} `{ message, review }`.
+ * @returns {400} Validation failed, or the caller already reviewed this product.
+ * @returns {404} Product not found.
+ */
 router.post('/', authenticateToken, [
   body('productId').isString(),
   body('rating').isInt({ min: 1, max: 5 }),
@@ -131,7 +161,19 @@ router.post('/', authenticateToken, [
   }
 });
 
-// Update review
+/**
+ * @route PUT /api/reviews/:id
+ * @access Authenticated (own reviews only)
+ * @description Edit a review's rating/comment. Admins cannot edit other
+ *   users' reviews through this endpoint (only delete them - see below);
+ *   the ownership filter here has no admin bypass.
+ * @param {string} req.params.id - Review id.
+ * @param {number} req.body.rating - 1 to 5.
+ * @param {string} [req.body.comment] - Max 1000 characters.
+ * @returns {200} `{ message, review }`.
+ * @returns {400} Validation failed.
+ * @returns {404} No such review, or it belongs to a different user.
+ */
 router.put('/:id', authenticateToken, [
   body('rating').isInt({ min: 1, max: 5 }),
   body('comment').optional().trim().isLength({ max: 1000 })
@@ -181,7 +223,17 @@ router.put('/:id', authenticateToken, [
   }
 });
 
-// Delete review
+/**
+ * @route DELETE /api/reviews/:id
+ * @access Authenticated (own reviews); admins can delete any review
+ * @description Remove a review. The admin override exists so moderators can
+ *   take down abusive content without needing to impersonate the author.
+ * @param {string} req.params.id - Review id.
+ * @returns {200} `{ message }`.
+ * @returns {404} No such review, or (for a non-admin) it belongs to a
+ *   different user - deliberately indistinguishable from "doesn't exist",
+ *   so a non-owner probing ids learns nothing about which reviews are real.
+ */
 router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -217,7 +269,13 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Get user's reviews
+/**
+ * @route GET /api/reviews/user/me
+ * @access Authenticated
+ * @description Every review the caller has written, with a summary of the
+ *   product each one is for.
+ * @returns {200} `{ reviews }`, newest first.
+ */
 router.get('/user/me', authenticateToken, async (req, res) => {
   try {
     const reviews = await prisma.review.findMany({
@@ -240,7 +298,12 @@ router.get('/user/me', authenticateToken, async (req, res) => {
   }
 });
 
-// Add GET /info for demo
+/**
+ * @route GET /api/reviews/info
+ * @access Public
+ * @description Static usage hint for this router.
+ * @returns {200} `{ message }`.
+ */
 router.get('/info', (req, res) => {
   res.json({
     message: 'GET /api/reviews returns reviews. Use POST, PUT, DELETE for review actions.'

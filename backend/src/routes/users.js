@@ -4,7 +4,15 @@ import { requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get all users (admin only)
+/**
+ * @route GET /api/users
+ * @access Admin only
+ * @description List every user with computed order stats (total spent,
+ *   average order value, counted from COMPLETED orders only).
+ * @returns {200} `{ users }` - newest account first. Each user includes
+ *   `orderCount`, `reviewCount`, `totalSpent`, `totalOrders`,
+ *   `averageOrderValue`, and a coarse `status` ('admin' | 'active').
+ */
 router.get('/', requireAdmin, async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -64,7 +72,21 @@ router.get('/', requireAdmin, async (req, res) => {
   }
 });
 
-// Get user by ID (admin only)
+/**
+ * @route GET /api/users/:id
+ * @access Admin only
+ * @description Fetch one user's profile, full order history, and reviews.
+ *
+ *   ROUTE ORDER CAVEAT: because this is registered before the literal
+ *   '/info' route below, a request to GET /api/users/info matches here
+ *   first with `id: 'info'`, not the intended usage-hint handler - it hits
+ *   this handler's admin check and 404s rather than returning the info
+ *   message. '/me/stats' is unaffected (two path segments, this route only
+ *   matches one). Documented as-is; not fixed here.
+ * @param {string} req.params.id - User id.
+ * @returns {200} `{ user }` including `orderCount` and `reviewCount`.
+ * @returns {404} User not found.
+ */
 router.get('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -128,7 +150,16 @@ router.get('/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// Update user role (admin only)
+/**
+ * @route PUT /api/users/:id/role
+ * @access Admin only
+ * @description Promote or demote a user between USER and ADMIN.
+ * @param {string} req.params.id - User id.
+ * @param {'USER'|'ADMIN'} req.body.role
+ * @returns {200} `{ message, user }`.
+ * @returns {400} `role` is missing or not one of the two allowed values.
+ * @returns {404} User not found.
+ */
 router.put('/:id/role', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -168,14 +199,30 @@ router.put('/:id/role', requireAdmin, async (req, res) => {
   }
 });
 
-// Add GET /info for demo
+/**
+ * @route GET /api/users/info
+ * @access Intended: public usage hint. Actual: unreachable - see the route
+ *   order caveat on GET /:id above; `/:id` is registered first and swallows
+ *   this path with `id: 'info'`.
+ * @description Static usage hint for this router (never actually reached).
+ * @returns {200} `{ message }`.
+ */
 router.get('/info', (req, res) => {
   res.json({
     message: 'GET /api/users returns user info (admin only). Use POST, PUT, DELETE for user actions.'
   });
 });
 
-// Get user statistics (for current user)
+/**
+ * @route GET /api/users/me/stats
+ * @access Authenticated
+ * @description The caller's own summary stats - order/review/cart-item
+ *   counts and spend, computed from COMPLETED orders only.
+ * @returns {200} `{ stats: { orderCount, reviewCount, cartItemCount,
+ *   totalSpent, averageOrderValue, completedOrders } }`.
+ * @returns {404} User not found (should not occur for a valid token, since
+ *   authenticateToken already re-verifies the account exists).
+ */
 router.get('/me/stats', async (req, res) => {
   try {
     const stats = await prisma.user.findUnique({

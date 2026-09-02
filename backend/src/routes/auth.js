@@ -7,7 +7,20 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Register
+/**
+ * @route POST /api/auth/register
+ * @access Public
+ * @description Create a new account and immediately sign in (returns a
+ *   token, no separate login step). Always creates a USER-role account -
+ *   there is no way to self-register as ADMIN through this endpoint.
+ * @param {string} req.body.email
+ * @param {string} req.body.password - Minimum 6 characters; hashed with
+ *   bcrypt (cost 12) before storage.
+ * @param {string} [req.body.firstName]
+ * @param {string} [req.body.lastName]
+ * @returns {201} `{ message, user, token }` - `token` is a 7-day JWT.
+ * @returns {400} Validation failed, or the email is already registered.
+ */
 router.post('/register', [
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email address'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
@@ -69,14 +82,35 @@ router.post('/register', [
   }
 });
 
-// Add GET /register for browser/demo
+/**
+ * @route GET /api/auth/register
+ * @access Public
+ * @description Usage hint for anyone who navigates here directly in a browser.
+ * @returns {200} `{ message }`.
+ */
 router.get('/register', (req, res) => {
   res.json({
     message: 'This endpoint is for POST requests only. Please use POST with email, password, firstName, and lastName.'
   });
 });
 
-// Login
+/**
+ * @route POST /api/auth/login
+ * @access Public
+ * @description Authenticate and issue a token.
+ *
+ *   An unknown email and a wrong password return the exact same status and
+ *   message ("Invalid credentials") - distinguishing them would let an
+ *   attacker enumerate which emails have accounts before ever guessing a
+ *   password, so this is deliberate, not an oversight.
+ * @param {string} req.body.email
+ * @param {string} req.body.password
+ * @returns {200} `{ message, user, token }` - `user` omits the password
+ *   hash; `token` is a 7-day JWT.
+ * @returns {400} Validation failed (missing/malformed email or password).
+ * @returns {401} No account with that email, or the password didn't match -
+ *   see the note above on why these are indistinguishable to the caller.
+ */
 router.post('/login', [
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email address'),
   body('password').notEmpty().withMessage('Password is required')
@@ -124,14 +158,25 @@ router.post('/login', [
   }
 });
 
-// Add GET /login for browser/demo
+/**
+ * @route GET /api/auth/login
+ * @access Public
+ * @description Usage hint for anyone who navigates here directly in a browser.
+ * @returns {200} `{ message }`.
+ */
 router.get('/login', (req, res) => {
   res.json({
     message: 'This endpoint is for POST requests only. Please use POST with email and password.'
   });
 });
 
-// Get current user
+/**
+ * @route GET /api/auth/me
+ * @access Authenticated
+ * @description Return the caller's own profile - the standard "who am I"
+ *   endpoint a client calls on load to check an existing token is still valid.
+ * @returns {200} `{ user }`.
+ */
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -152,7 +197,18 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
-// Update profile
+/**
+ * @route PUT /api/auth/profile
+ * @access Authenticated
+ * @description Update the caller's own first/last name. Notably does not
+ *   accept email or password changes - those are separate concerns
+ *   (password rotation lives in routes/users.js) kept off this endpoint so a
+ *   simple profile-edit form can't accidentally touch credentials.
+ * @param {string} [req.body.firstName]
+ * @param {string} [req.body.lastName]
+ * @returns {200} `{ message, user }`.
+ * @returns {400} Validation failed.
+ */
 router.put('/profile', authenticateToken, [
   body('firstName').optional().trim().isLength({ min: 1 }),
   body('lastName').optional().trim().isLength({ min: 1 })

@@ -24,6 +24,12 @@ const transport =
       }
     : undefined;
 
+/**
+ * The application-wide pino logger instance. Import and call directly
+ * (`logger.info(...)`, `logger.error({ err }, ...)`, etc.) - see the
+ * module comment above for why structured logging and what gets redacted.
+ * @type {import('pino').Logger}
+ */
 export const logger = pino({
   // Tests would otherwise bury real failures under request noise.
   level: process.env.LOG_LEVEL || (isTest ? 'silent' : isProduction ? 'info' : 'debug'),

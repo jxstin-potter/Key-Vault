@@ -26,11 +26,21 @@ const DEFAULT_INTERVAL_MS = 60 * 1000;
  * and the losers would match zero rows. If this ever scales horizontally, the
  * upgrade is a Postgres advisory lock around the sweep, not a new service.
  *
- * @returns {() => void} stop function, for graceful shutdown and for tests.
+ * @param {object} [options]
+ * @param {number} [options.intervalMs=60000] - Milliseconds between sweep
+ *   passes. Defaults to one minute.
+ * @returns {() => void} Stop function - call it to clearInterval the sweep,
+ *   used on graceful shutdown (server.js) and by tests to clean up after
+ *   themselves.
  */
 export function startReservationSweeper({ intervalMs = DEFAULT_INTERVAL_MS } = {}) {
   let running = false;
 
+  /**
+   * One sweep pass: release any reservation whose hold has lapsed. Guards
+   * against overlapping with itself and never throws, so a slow or failing
+   * database can't pile up work on the connection pool or crash the timer.
+   */
   const sweep = async () => {
     // Skip if the previous pass is still going. A slow database should not let
     // overlapping sweeps pile up on the connection pool.

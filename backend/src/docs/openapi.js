@@ -188,7 +188,14 @@ const responses = {
   }
 };
 
-/** Endpoints that exist purely so a browser GET explains how to POST. */
+/**
+ * Endpoints that exist purely so a browser GET explains how to POST.
+ * Several routers (auth, cart, orders, products, categories, reviews, users)
+ * expose a plain-text usage hint at their base path or /info for anyone who
+ * navigates there directly; this generates the matching OpenAPI path entry.
+ * @param {string} summary - Short OpenAPI summary for this hint endpoint.
+ * @returns {object} An OpenAPI path-item object with a single documented GET.
+ */
 const postOnlyHint = (summary) => ({
   get: {
     tags: ['Meta'],
@@ -199,6 +206,14 @@ const postOnlyHint = (summary) => ({
   }
 });
 
+/**
+ * A reusable OpenAPI path-parameter definition for an id segment
+ * (`/resource/:id`), so every route documenting one doesn't repeat the
+ * same shape.
+ * @param {string} [name='id'] - Path parameter name.
+ * @param {string} [description='Record id'] - Parameter description.
+ * @returns {object} An OpenAPI parameter object.
+ */
 const idParam = (name = 'id', description = 'Record id') => ({
   name,
   in: 'path',

@@ -60,6 +60,16 @@ const stopSweeper = startReservationSweeper();
  */
 let shuttingDown = false;
 
+/**
+ * Idempotent shutdown sequence: stop accepting new work, let in-flight
+ * requests drain, disconnect Prisma, then exit. Safe to call more than once
+ * (e.g. both SIGTERM and an unhandledRejection racing) - the second call is
+ * a no-op via the `shuttingDown` guard.
+ * @param {string} signal - Name of the signal or event that triggered
+ *   shutdown, logged for diagnostics ('SIGTERM', 'SIGINT', 'unhandledRejection').
+ * @returns {Promise<void>} Never resolves under normal operation - the
+ *   process exits via `process.exit()` inside this function instead.
+ */
 async function shutdown(signal) {
   if (shuttingDown) return;
   shuttingDown = true;
