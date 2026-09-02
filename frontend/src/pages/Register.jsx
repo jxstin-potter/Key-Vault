@@ -50,7 +50,9 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      const { confirmPassword, ...registrationData } = formData;
+      // Stripped rather than sent: the confirmation field is a UI
+      // concern and the API has no use for it.
+      const { confirmPassword: _confirmPassword, ...registrationData } = formData;
       const result = await register(registrationData);
       
       if (result.success) {

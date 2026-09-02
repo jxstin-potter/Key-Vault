@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { User, Mail, Calendar, Edit, Save, X } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 
 export default function Profile() {

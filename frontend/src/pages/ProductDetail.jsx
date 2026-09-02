@@ -15,7 +15,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [showCartPreview, setShowCartPreview] = useState(true);
   
-  const { addToCart, isInCart, getCartItem, updateQuantity, removeFromCart, isLoading: cartLoading, getItemCount } = useCartStore();
+  const { addToCart, isInCart, getCartItem, updateQuantity, removeFromCart, getItemCount } = useCartStore();
   const { isAuthenticated } = useAuthStore();
   
   // Fetch product on mount

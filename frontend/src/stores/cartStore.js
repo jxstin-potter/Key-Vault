@@ -41,7 +41,7 @@ export const useCartStore = create(
             items: response.data.items || [],
             isLoading: false 
           });
-        } catch (error) {
+        } catch {
           set({ isLoading: false });
         }
       },
@@ -57,8 +57,8 @@ export const useCartStore = create(
 
         set({ isLoading: true });
         try {
-          const response = await api.post('/cart/add', { productId: String(productId), quantity });
-          
+          await api.post('/cart/add', { productId: String(productId), quantity });
+
           await get().loadCart();
           showAddedToCartToast();
           return { success: true };

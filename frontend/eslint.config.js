@@ -23,7 +23,25 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': [
+        'error',
+        {
+          varsIgnorePattern: '^[A-Z_]',
+          // A caught error that is deliberately swallowed still has to be
+          // named. `_` marks that as intentional rather than forgotten.
+          caughtErrorsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
+    // Build tooling and setup scripts run in Node, not the browser. Linting
+    // them with browser globals reported `process is not defined` six times
+    // in files where process is exactly the right thing to use.
+    files: ['**/*.config.js', 'scripts/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
     },
   },
 ])
