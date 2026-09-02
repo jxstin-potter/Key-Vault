@@ -180,14 +180,10 @@ export default function ProductDetail() {
             {/* Product Badges */}
             <div className="flex items-center gap-2 mb-4">
               {product.stock === 0 && (
-                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  Out of Stock
-                </span>
+                <span className="badge-out">Out of Stock</span>
               )}
               {product.stock > 0 && product.stock < 10 && (
-                <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  Low Stock
-                </span>
+                <span className="badge-limited">Low Stock</span>
               )}
             </div>
 
@@ -200,7 +196,7 @@ export default function ProductDetail() {
               </div>
               <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-full">{product.category?.name || 'General'}</span>
               {product.platform && (
-                <span className="text-xs font-medium text-primary-700 bg-primary-100 px-2 py-1 rounded-full">
+                <span className="text-xs font-medium text-primary-400 bg-primary-400/10 border border-primary-400/30 px-2 py-1 rounded-full">
                   {product.platform}
                 </span>
               )}
@@ -285,11 +281,11 @@ export default function ProductDetail() {
             {/* Stock Status */}
             <div className="flex items-center gap-4">
               {product.stock > 0 ? (
-                <span className="text-xs text-success-700 bg-success-100 px-2 py-1 rounded-full font-medium">
+                <span className="badge-stock">
                   In Stock ({product.stock} {product.stock === 1 ? 'key' : 'keys'})
                 </span>
               ) : (
-                <span className="text-xs text-error-700 bg-error-100 px-2 py-1 rounded-full font-medium">Out of Stock</span>
+                <span className="badge-out">Out of Stock</span>
               )}
               
               {isProductInCart && (
@@ -347,7 +343,7 @@ export default function ProductDetail() {
                   <button
                     onClick={() => handleUpdateQuantity(quantity)}
                     disabled={isLoading}
-                    className="flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+                    className="btn-primary flex-1 py-3 px-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:transform-none"
                   >
                     {isLoading ? "Updating..." : "Update Cart"}
                   </button>
@@ -364,10 +360,10 @@ export default function ProductDetail() {
                   onClick={handleAddToCart}
                   disabled={product.stock === 0 || isLoading}
                   className={cn(
-                    "w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-lg",
+                    "w-full py-3 px-4 flex items-center justify-center gap-2 text-lg transition-all duration-200",
                     product.stock > 0 && !isLoading
-                      ? "bg-primary-600 text-white hover:bg-primary-700 shadow-none hover:shadow-md"
-                      : "bg-neutral-200 text-neutral-500 cursor-not-allowed"
+                      ? "btn-primary"
+                      : "rounded-lg font-medium bg-neutral-200 text-neutral-500 cursor-not-allowed"
                   )}
                 >
                   <ShoppingCart size={22} />
@@ -408,9 +404,11 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Floating Cart Preview */}
+      {/* Floating Cart Preview. Anchored left: the buy box is sticky to the
+          bottom of the content column, so a bottom-right float sits on top of
+          its Update Cart / Remove buttons. */}
       {getItemCount() > 0 && showCartPreview && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 left-6 z-50">
           <div className="bg-neutral-100 rounded-xl shadow-large border border-neutral-200 p-4 max-w-sm">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-neutral-900">Cart Preview</h3>

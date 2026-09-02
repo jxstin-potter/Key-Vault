@@ -14,6 +14,7 @@ import {
 import { useAuthStore } from '../../stores/authStore';
 import { useCartStore } from '../../stores/cartStore';
 import { cn } from '../../lib/utils';
+import Logo from '../Logo';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -67,10 +68,8 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">KV</span>
-            </div>
+          <Link to="/" className="group flex items-center space-x-2">
+            <Logo className="w-8 h-8 transition-opacity duration-150 group-hover:opacity-80" />
             <span className="text-xl font-bold font-display tracking-wide text-gradient-primary">KeyVault</span>
           </Link>
 

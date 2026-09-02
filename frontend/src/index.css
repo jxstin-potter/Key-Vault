@@ -1,5 +1,6 @@
-/* Import fonts - Cartridge theme: Chakra Petch for display, Manrope for body/UI */
-@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Import fonts - Inter carries the whole UI (weight and tracking do the work
+   a second family would otherwise do); JetBrains Mono for keys and codes. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* Tailwind directives */
 @tailwind base;
@@ -35,16 +36,64 @@
 
 /* Custom component classes */
 @layer components {
+  /* Solid fill with white text rather than dark text on a bright gradient.
+     The gradient version was the loudest thing on every page it appeared on;
+     a flat blue at 5.4:1 carries the same emphasis without shouting, and it
+     is what makes the button read as a storefront control. */
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-primary-700 shadow-medium hover:shadow-large transform hover:-translate-y-0.5;
+    @apply bg-primary-600 text-white px-4 py-2 rounded font-semibold
+           shadow-raised transition-colors duration-150
+           hover:bg-primary-500
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50;
   }
 
   .btn-outline {
-    @apply border border-primary-600 text-primary-600 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-primary-600 hover:text-white;
+    @apply border border-neutral-300 text-neutral-800 px-4 py-2 rounded font-medium
+           transition-colors duration-150
+           hover:border-primary-500 hover:text-white hover:bg-neutral-200
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50;
   }
 
   .text-gradient-primary {
-    @apply bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary-300 to-secondary-400 bg-clip-text text-transparent;
+  }
+
+  /* Product/content card. Hover brightens the border and deepens the shadow
+     instead of lifting and glowing - at grid density, motion on every tile is
+     noise, and the shadow alone is enough to say "this one".
+
+     Deliberately sets no background: consumers pick their own, and cards whose
+     contents rely on contrast against the card surface (an image placeholder,
+     say) need to choose it themselves. */
+  .card-game {
+    @apply border border-neutral-300 rounded transition-[border-color,box-shadow] duration-150;
+  }
+
+  .card-game:hover {
+    @apply border-neutral-400 shadow-raised-lg;
+  }
+
+  /* Status badges. Colour carries the meaning on its own, so each also states
+     it in text - a glow alone is not an accessible signal.
+
+     The plate is a near-opaque dark backdrop rather than a tint of the accent
+     colour, because these sit on top of cover art: a 10% wash would leave neon
+     text sitting directly on whatever the artwork happens to be. */
+  .badge-base {
+    @apply inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide
+           bg-neutral-50/90 backdrop-blur-sm border;
+  }
+
+  .badge-stock {
+    @apply badge-base border-success-500/60 text-success-400;
+  }
+
+  .badge-limited {
+    @apply badge-base border-warning-500/60 text-warning-400;
+  }
+
+  .badge-out {
+    @apply badge-base border-error-500/60 text-error-400;
   }
 
   /* Hide scrollbar utilities */
@@ -66,3 +115,7 @@
     @apply px-4 sm:px-6 lg:px-8;
   }
 }
+
+/* No prefers-reduced-motion block: nothing above animates position or scale
+   any more. The remaining transitions are colour and shadow only, which are
+   not what that preference is asking to suppress. */
