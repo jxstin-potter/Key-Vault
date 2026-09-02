@@ -9,6 +9,20 @@ const router = express.Router();
 const AVAILABLE_KEYS = { select: { gameKeys: { where: { status: "AVAILABLE" } } } };
 const LOW_STOCK_THRESHOLD = 10;
 
+// Which orders represent money the business actually received.
+//
+// An order row is created the moment someone clicks Checkout, before any
+// payment is attempted, and it stays there when they abandon the tab. It also
+// survives being cancelled, failing, and being refunded. Summing `total`
+// across every row - which is what this file used to do - counts abandoned
+// baskets and returned money as income, and reports roughly double the truth
+// on a store with a normal abandonment rate.
+//
+// PENDING is not revenue: nobody has paid. REFUNDED is not revenue: the money
+// went back. Only these two states mean funds arrived and stayed.
+const REVENUE_STATUSES = ["PAID", "COMPLETED"];
+const EARNED = { status: { in: REVENUE_STATUSES } };
+
 // Test endpoint to check authentication
 router.get("/test", requireAdmin, (req, res) => {
   res.json({
@@ -22,9 +36,10 @@ router.get("/test", requireAdmin, (req, res) => {
 router.get("/overview", requireAdmin, async (req, res) => {
   try {
     // Basic stats
-    const totalOrders = await prisma.order.count();
+    const totalOrders = await prisma.order.count({ where: EARNED });
     const totalRevenue = await prisma.order.aggregate({
       _sum: { total: true },
+      where: EARNED,
     });
     const totalUsers = await prisma.user.count({
       where: { role: "USER" },
@@ -47,6 +62,7 @@ router.get("/overview", requireAdmin, async (req, res) => {
       by: ["createdAt"],
       _sum: { total: true },
       where: {
+        ...EARNED,
         createdAt: {
           gte: sixMonthsAgo,
         },
@@ -57,6 +73,9 @@ router.get("/overview", requireAdmin, async (req, res) => {
     const topProducts = await prisma.orderItem.groupBy({
       by: ["productId"],
       _sum: { quantity: true },
+      // Without this, a product nobody bought outranks one that sold, purely
+      // on how often it was abandoned in a basket.
+      where: { order: EARNED },
       orderBy: {
         _sum: {
           quantity: "desc",
@@ -123,11 +142,12 @@ router.get("/overview", requireAdmin, async (req, res) => {
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
     const recentOrdersCount = await prisma.order.count({
-      where: { createdAt: { gte: thirtyDaysAgo } },
+      where: { ...EARNED, createdAt: { gte: thirtyDaysAgo } },
     });
 
     const previousOrdersCount = await prisma.order.count({
       where: {
+        ...EARNED,
         createdAt: {
           gte: sixtyDaysAgo,
           lt: thirtyDaysAgo,
@@ -137,12 +157,13 @@ router.get("/overview", requireAdmin, async (req, res) => {
 
     const recentRevenue = await prisma.order.aggregate({
       _sum: { total: true },
-      where: { createdAt: { gte: thirtyDaysAgo } },
+      where: { ...EARNED, createdAt: { gte: thirtyDaysAgo } },
     });
 
     const previousRevenue = await prisma.order.aggregate({
       _sum: { total: true },
       where: {
+        ...EARNED,
         createdAt: {
           gte: sixtyDaysAgo,
           lt: thirtyDaysAgo,
@@ -205,8 +226,10 @@ router.get("/sales", requireAdmin, async (req, res) => {
     let endDate = end ? new Date(end) : null;
     if (endDate) endDate.setHours(23, 59, 59, 999);
 
-    // Build where clause for orders
-    const orderWhere = {};
+    // Build where clause for orders. Seeded with the revenue filter: this
+    // endpoint also backs the CSV export, and a sales report that counts
+    // abandoned baskets is worse than no report at all.
+    const orderWhere = { ...EARNED };
     if (startDate)
       orderWhere.createdAt = { ...orderWhere.createdAt, gte: startDate };
     if (endDate)
@@ -350,6 +373,9 @@ router.get("/users", requireAdmin, async (req, res) => {
       by: ["userId"],
       _count: { id: true },
       _sum: { total: true },
+      // A customer who filled a basket and left has spent nothing, and should
+      // not appear alongside customers who actually paid.
+      where: EARNED,
     });
 
     // Get user details for active users
@@ -398,6 +424,7 @@ router.get("/products", requireAdmin, async (req, res) => {
       by: ["productId"],
       _sum: { quantity: true, price: true },
       _count: { id: true },
+      where: { order: EARNED },
     });
 
     // Get product details
