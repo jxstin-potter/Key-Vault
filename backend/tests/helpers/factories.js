@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../../src/lib/prisma.js';
+import { reserveKeys } from '../../src/lib/keys.js';
 
 /**
  * Test data builders.
@@ -109,6 +110,43 @@ export async function addToCart(userId, productId, quantity = 1) {
 /** Count keys in a given status, the assertion most inventory tests make. */
 export const countKeys = (productId, status) =>
   prisma.gameKey.count({ where: { productId, status } });
+
+/**
+ * A PENDING order with keys held against it - exactly the state
+ * POST /api/checkout/session leaves behind while the customer is on Stripe's
+ * payment page. This is the starting point for every fulfilment test.
+ */
+export async function createReservedOrder({
+  user,
+  product,
+  quantity = 1,
+  stripeSessionId = null,
+  reservedFor = 35 * 60 * 1000
+}) {
+  return prisma.$transaction(async (tx) => {
+    const order = await tx.order.create({
+      data: {
+        userId: user.id,
+        total: Number(product.price) * quantity,
+        status: 'PENDING',
+        stripeSessionId
+      }
+    });
+
+    const orderItem = await tx.orderItem.create({
+      data: { orderId: order.id, productId: product.id, quantity, price: product.price }
+    });
+
+    const keyIds = await reserveKeys(tx, {
+      productId: product.id,
+      orderItemId: orderItem.id,
+      quantity,
+      until: new Date(Date.now() + reservedFor)
+    });
+
+    return { order, orderItem, keyIds };
+  });
+}
 
 /**
  * An order that has been paid and fulfilled, as the webhook would leave it.

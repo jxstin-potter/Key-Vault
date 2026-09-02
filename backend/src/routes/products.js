@@ -75,7 +75,12 @@ router.get('/', [
     };
 
     if (category) {
-      where.category = { name: category };
+      // Accept whichever handle the caller happens to hold. The catalogue UI
+      // links by name (?category=Action), Categories.jsx and shareable links
+      // read better with a slug, and API clients naturally have the id.
+      // Matching all three costs one indexed lookup and removes a class of
+      // "why does this filter silently return nothing" bug.
+      where.category = { OR: [{ name: category }, { slug: category }, { id: category }] };
     }
 
     if (platform) where.platform = platform;
@@ -147,8 +152,12 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await prisma.product.findUnique({
-      where: { id },
+    // Look up by id or slug. Products carry a unique slug that nothing could
+    // previously resolve, so /products/elden-ring 404'd while the far uglier
+    // /products/clx8k2p0a0000qw3f8h2n1m4t worked. findFirst rather than
+    // findUnique because this is now a two-column OR.
+    const product = await prisma.product.findFirst({
+      where: { OR: [{ id }, { slug: id }] },
       include: {
         category: {
           select: { id: true, name: true }

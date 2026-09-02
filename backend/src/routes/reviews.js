@@ -186,14 +186,21 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if review exists and belongs to user
+    // Authors delete their own reviews; admins can delete any. A store that
+    // accepts user-generated content needs a way to remove abuse, and there
+    // was previously none - the admin area could see reported reviews and do
+    // nothing about them.
+    const isAdmin = req.user.role === 'ADMIN';
+
     const review = await prisma.review.findFirst({
       where: {
         id,
-        userId: req.user.id
+        ...(isAdmin ? {} : { userId: req.user.id })
       }
     });
 
+    // 404 rather than 403 for a review that exists but belongs to someone
+    // else: a non-owner has no business learning that this id is real.
     if (!review) {
       return res.status(404).json({ message: 'Review not found' });
     }
