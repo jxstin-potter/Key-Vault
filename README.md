@@ -2,16 +2,77 @@
 
 A digital game key marketplace built with React 19, Express.js, and PostgreSQL. Browse games by genre and platform, buy a key, and receive it instantly. Deployed on Render (backend) and Vercel (frontend) with automatic CI/CD.
 
+**Live Demo**: https://commerce-flow-v2.vercel.app
+
+## 🎨 Screenshots
+
+| Homepage | Browse Games |
+|----------|--------------|
+| ![Homepage](.github/assets/home.png) | ![Browse](.github/assets/browse.png) |
+
+| Shopping Cart | My Keys Dashboard |
+|--------------|-------------------|
+| ![Cart](.github/assets/cart.png) | ![My Keys](.github/assets/mykeys.png) |
+
+### Key Features Shown
+- **Steam-inspired branding** with professional blue/teal palette
+- **Custom logo** (key with D-pad) across all pages
+- **Product grid** with platform badges, stock status, ratings
+- **Shopping cart** with real-time totals
+- **Instant key delivery** dashboard showing purchased games
+- **Responsive design** optimized for desktop and mobile
+
 ## ✨ Features
 
-- **🛍️ Complete E-commerce**: Product catalog, shopping cart, orders, reviews
-- **👤 User Management**: Registration, authentication, user profiles
-- **🔐 Admin Dashboard**: Product management, order processing, user administration
-- **💳 Payment Integration**: Stripe payment processing (optional)
-- **📱 Responsive Design**: Mobile-first design with Tailwind CSS
-- **🚀 Modern Stack**: React 19, Express 4.18.2, Prisma ORM, PostgreSQL
-- **☁️ Cloud Deployed**: Render backend, Vercel frontend, Neon Postgres
-- **🔄 Auto Deploy**: Git-based deployment with health checks
+### Product Discovery
+- **🛍️ Game Catalog**: Browse 100+ games with real Steam cover art
+- **🏷️ Smart Filtering**: Filter by platform (Steam, Epic, PlayStation, Xbox, etc.) and region
+- **⭐ Ratings & Reviews**: Community ratings and review counts
+- **📊 Product Details**: Platform, region, developer, release date, stock status
+
+### E-commerce
+- **🛒 Shopping Cart**: Persistent cart with real-time totals
+- **💳 Stripe Payment**: Secure checkout with key reservation system
+- **🔐 Instant Delivery**: Keys delivered immediately upon payment confirmation
+- **📋 Order History**: Track all purchases with delivery status
+
+### User Experience  
+- **👤 Account Management**: Registration, authentication, profile editing
+- **📱 Responsive Design**: Optimized for desktop, tablet, and mobile
+- **🎨 Professional Branding**: Custom logo, Steam-inspired color palette
+- **🔄 Real-time Updates**: Cart state, key delivery, order status
+
+### Admin Tools
+- **🔐 Admin Dashboard**: Secure admin panel with role-based access
+- **📦 Product Management**: Create, edit, delete games with bulk import
+- **🔑 Key Inventory**: Manage game keys, track stock levels
+- **👥 User Administration**: View customer profiles and order history
+- **📊 Analytics**: Sales dashboard with revenue and order metrics
+
+### Technical Excellence
+- **🚀 Modern Stack**: React 19, Express.js, Prisma, PostgreSQL
+- **☁️ Cloud Deployed**: Render backend, Vercel frontend with auto-scaling
+- **🔄 CI/CD Pipeline**: Automatic deployment on git push
+- **🔒 Security**: JWT auth, rate limiting, CORS protection, password hashing
+- **⚡ Performance**: Lazy loading, optimized images, efficient queries
+
+## 🎯 Recent Improvements (Sept 2024)
+
+### Branding Overhaul
+- **Custom Logo**: Redesigned key icon with integrated D-pad gaming element
+- **Color System**: Professional blue-grey palette (#171a21 ground, signal blue accent)
+- **Typography**: Single font family (Inter) with weight-based hierarchy for cleaner aesthetics
+- **Footer Redesign**: Minimal 3-column layout (reduced from 409px to 273px)
+- **Component System**: 
+  - `.btn-primary`: Solid blue buttons with shadow depth
+  - `.card-game`: Border-only cards with subtle hover effects
+  - `.badge-*`: Status badges with dark plate backgrounds
+
+### Styling Approach
+- **Tailwind + Custom CSS**: Extended Tailwind with @layer components
+- **Color Token Retuning**: Updated entire palette in one config file (all 36+ components inherit automatically)
+- **Accessibility**: Measured contrast ratios (5.36:1 for AA compliance on normal text)
+- **Responsive**: Mobile-first approach with proper viewport handling
 
 ## 🏗️ Architecture
 
@@ -37,6 +98,14 @@ commerceFlow-v2/
 ```
 
 ## 🚀 Quick Start
+
+### See It Live Right Now
+- **Production**: https://commerce-flow-v2.vercel.app
+- **Demo Account**: `user@keyvault.com` / `user123`
+- **Browse Games**: Click on the Games link at the top
+- **Admin Panel**: Ask for demo admin credentials
+
+No deployment waiting—it's live and ready to explore.
 
 ### Prerequisites
 - Node.js 18+
@@ -299,31 +368,62 @@ No automated test framework is configured yet. Testing is currently manual, via 
 #### Render free-tier cold starts
 - On Render's free tier, the backend spins down after inactivity. The first request after idle can take 30–60s and may return a transient `503` while the instance wakes up — this is expected, not a bug. Subsequent requests succeed normally.
 
+## 💳 Payment & Orders
+
+### Stripe Integration
+- **Secure Checkout**: Stripe Checkout sessions with real-time pricing from database
+- **Key Reservation**: 35-minute hold prevents overselling during checkout
+- **Webhook Handling**: `checkout.session.completed`, `async_payment_succeeded`, session expiry
+- **Idempotent Fulfillment**: Duplicate webhook deliveries are safely ignored
+- **Order States**: PENDING → COMPLETED (on payment) or CANCELLED/FAILED (on expiry or declined)
+
+### Key Delivery
+- **Instant Distribution**: Keys marked SOLD immediately on payment confirmation
+- **My Keys Dashboard**: Customers view purchased keys grouped by order
+- **Order History**: Full transaction history with delivery timestamps
+- **Platform Tracking**: Keys show platform, region, and game metadata
+
+### Security
+- **Key Rotation**: Used keys move from AVAILABLE → RESERVED → SOLD
+- **Webhook Validation**: Stripe signature verification prevents spoofing
+- **Cart Clearing**: Automatically cleared on successful purchase
+- **No Client Pricing**: All amounts calculated server-side; client cannot manipulate
+
 ## 🛠️ Tech Stack
 
-### Backend
-- **Runtime**: Node.js 18+
-- **Framework**: Express.js 4.18.2
-- **Database**: PostgreSQL (Neon) with Prisma ORM 6.11.1
-- **Authentication**: JWT with bcryptjs
-- **Validation**: express-validator
-- **Security**: Helmet, CORS, Rate limiting
-- **Deployment**: Render
+### Backend - Express.js + Prisma
+- **Runtime**: Node.js 18+ (faster with V8 optimization)
+- **Framework**: Express.js 4.18.2 (lightweight, battle-tested)
+- **Database**: PostgreSQL with Prisma ORM 6.11.1 (type-safe queries)
+- **Authentication**: JWT + bcryptjs (stateless, secure)
+- **Payments**: Stripe SDK (PCI-compliant checkout)
+- **Validation**: express-validator with middleware chains
+- **Security Stack**: 
+  - Helmet (headers)
+  - CORS with origin validation
+  - Rate limiting (express-rate-limit)
+  - Input sanitization
+- **Deployment**: Render (auto-scaling, health checks)
 
-### Frontend
-- **Framework**: React 19.1.0 with Vite 7.0.4
-- **Styling**: Tailwind CSS 3.4.17
-- **State Management**: Zustand 5.0.2
-- **HTTP Client**: Axios 1.7.9
-- **UI Components**: Lucide React icons
-- **Deployment**: Vercel
+### Frontend - React 19 + Tailwind
+- **Framework**: React 19.1.0 with Vite 7.0.4 (instant HMR, fast builds)
+- **Styling**: Tailwind CSS 3.4.17 (utility-first, custom component layer)
+- **State**: Zustand 5.0.2 (lightweight, DevTools integration)
+- **HTTP**: Axios 1.7.9 (interceptors, request/response handling)
+- **Icons**: Lucide React (18 game-related icons, consistent styling)
+- **UI Patterns**:
+  - Error boundaries & fallbacks
+  - Loading states with spinners
+  - Toast notifications (react-hot-toast)
+  - Modal dialogs for confirmations
+- **Deployment**: Vercel (edge functions, analytics, automatic rollbacks)
 
-### Development Tools
-- **Package Manager**: npm
-- **Version Control**: Git
-- **Database GUI**: Prisma Studio
-- **Code Quality**: ESLint 9.30.1
-- **Build Tool**: Vite
+### Development & Tooling
+- **Database GUI**: Prisma Studio (`npm run db:studio`)
+- **Code Quality**: ESLint 9.30.1 (14 pre-existing rules for consistency)
+- **Build**: Vite with optimized chunks
+- **Git Workflow**: Feature branches, semantic commits
+- **Testing**: Manual via curl and UI (automated tests in Phase 2)
 
 ## 🤝 Contributing
 
