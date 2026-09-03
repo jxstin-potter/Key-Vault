@@ -109,6 +109,7 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Search games..."
+                aria-label="Search games"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-4 pr-10 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -246,6 +247,7 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Search games..."
+                aria-label="Search games"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-4 pr-10 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"

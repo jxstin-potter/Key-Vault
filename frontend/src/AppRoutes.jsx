@@ -2,7 +2,6 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { setNavigate } from './lib/navigation';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import AdminLayout from './components/layout/AdminLayout';
 import AuthGuard from './components/AuthGuard';
 import AdminGuard from './components/AdminGuard';
 import Home from './pages/Home';
@@ -10,16 +9,25 @@ import Products from './pages/Products';
 import Categories from './pages/Categories';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminProducts from './pages/AdminProducts';
-import AdminOrders from './pages/AdminOrders';
-import AdminCustomers from './pages/AdminCustomers';
-import AdminSettings from './pages/AdminSettings';
-import AdminAnalytics from './pages/AdminAnalytics';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './stores/authStore';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
+import AdminLogin from './pages/AdminLogin';
+
+// The admin area is loaded on demand.
+//
+// It is roughly half the application - six pages, the product and key upload
+// modals, and Recharts, which is heavy on its own - and no shopper will ever
+// open any of it. Bundling it into the main chunk meant every visitor
+// downloaded the entire back office before they could look at a game. These
+// are separate chunks now, fetched only when an admin actually navigates in.
+const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminProducts = lazy(() => import('./pages/AdminProducts'));
+const AdminOrders = lazy(() => import('./pages/AdminOrders'));
+const AdminCustomers = lazy(() => import('./pages/AdminCustomers'));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const AdminAnalytics = lazy(() => import('./pages/AdminAnalytics'));
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
@@ -27,6 +35,19 @@ import CheckoutSuccess from './pages/CheckoutSuccess';
 import MyKeys from './pages/MyKeys';
 import Orders from './pages/Orders';
 import Profile from './pages/Profile';
+
+/** Shown for the moment an admin chunk is in flight. */
+function AdminChunkFallback() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex min-h-screen items-center justify-center bg-neutral-50 text-neutral-600"
+    >
+      <span className="animate-pulse text-sm">Loading admin…</span>
+    </div>
+  );
+}
 
 export default function AppRoutes() {
   const location = useLocation();
@@ -83,7 +104,9 @@ export default function AppRoutes() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={
             <AdminGuard>
-              <AdminLayout />
+              <Suspense fallback={<AdminChunkFallback />}>
+                <AdminLayout />
+              </Suspense>
             </AdminGuard>
           }>
             <Route index element={<AdminDashboard />} />

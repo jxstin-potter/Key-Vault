@@ -2,7 +2,7 @@
 
 A digital game key marketplace with Stripe payments, instant delivery, and a professional admin dashboard. Built with React 19, Express.js, and PostgreSQL. Deployed on Vercel + Render with auto CI/CD.
 
-**Live**: https://commerce-flow-v2.vercel.app | Demo: `user@keyvault.com` / `user123`
+**Live**: https://keyv.vercel.app | Demo: `user@keyvault.com` / `user123`
 
 ## What Makes It Stand Out
 
@@ -14,7 +14,7 @@ A digital game key marketplace with Stripe payments, instant delivery, and a pro
 ## Quick Start
 
 ### Try It Now (2 seconds)
-Open https://commerce-flow-v2.vercel.app, login as `user@keyvault.com` / `user123`, click Games, add to cart, checkout.
+Open https://keyv.vercel.app, login as `user@keyvault.com` / `user123`, click Games, add to cart, checkout.
 
 ### Run Locally (5 minutes)
 ```bash
@@ -80,7 +80,7 @@ Test accounts:
 - JWT authentication with secure tokens
 - Password hashing (bcryptjs)
 - CORS with origin validation
-- Rate limiting (100 req/15min per IP)
+- Rate limiting (1000 req/15min general traffic, 20 failed attempts/15min on auth)
 - Input validation (express-validator)
 - Helmet for HTTP headers
 - Stripe webhook signature verification

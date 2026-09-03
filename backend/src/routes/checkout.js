@@ -17,6 +17,14 @@ const AVAILABLE_KEYS = { select: { gameKeys: { where: { status: 'AVAILABLE' } } 
 const SESSION_TTL_MINUTES = 30;
 const RESERVATION_TTL_MINUTES = 35;
 
+/**
+ * Route guard: reject checkout requests with 503 if Stripe isn't configured,
+ * rather than letting them fail deep inside the Stripe SDK call. Lets the
+ * rest of the store (catalogue, accounts, cart) run without payment keys set.
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
 const requireStripe = (req, res, next) => {
   if (!isStripeConfigured) {
     return res.status(503).json({ message: 'Payments are not configured on this server' });
@@ -24,9 +32,27 @@ const requireStripe = (req, res, next) => {
   next();
 };
 
-// ---------------------------------------------------------------------------
-// POST /api/checkout/session - reserve keys, then open a Stripe Checkout session
-// ---------------------------------------------------------------------------
+/**
+ * @route POST /api/checkout/session
+ * @access Authenticated
+ * @description Reserve keys for every item in the caller's cart, freeze an
+ *   order server-side, then open a Stripe Checkout session for it.
+ *
+ *   Prices are read from the database, never from the request body - a
+ *   client cannot influence what it is charged. Stock is checked against the
+ *   live AVAILABLE key count for each product; reservation itself goes
+ *   through reserveKeys() (see lib/keys.js) inside a single transaction per
+ *   order, retried via withKeyRetry() if lost to contention.
+ *
+ *   The reservation TTL (35 min) deliberately outlives the Stripe session TTL
+ *   (30 min), so the payment window always closes before the hold could
+ *   expire out from under a customer mid-payment.
+ * @returns {200} `{ url, orderId }` - redirect the browser to `url` to pay.
+ * @returns {400} Empty cart, or every cart item is for an inactive product.
+ * @returns {409} Insufficient stock for one of the cart items (either the
+ *   pre-check or an OutOfKeysError from the reservation transaction).
+ * @returns {503} Stripe is not configured (see requireStripe above).
+ */
 router.post('/session', requireStripe, async (req, res) => {
   try {
     // Reclaim anything whose hold lapsed before we measure availability.
@@ -142,12 +168,20 @@ router.post('/session', requireStripe, async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// GET /api/checkout/by-session/:sessionId - poll target for the success page
-//
-// Read-only on purpose. Fulfilment happens in the webhook, so a customer who
-// closes the tab before the redirect still gets their keys.
-// ---------------------------------------------------------------------------
+/**
+ * @route GET /api/checkout/by-session/:sessionId
+ * @access Authenticated (scoped to the caller's own orders)
+ * @description Poll target for the post-payment success page. Read-only on
+ *   purpose: fulfilment happens in the Stripe webhook (routes/webhooks.js),
+ *   not here, so a customer who closes the tab before this page loads still
+ *   receives their keys. This endpoint only reports whatever state the
+ *   webhook has already reached.
+ * @param {string} req.params.sessionId - Stripe Checkout session id.
+ * @returns {200} `{ order }` including delivered key codes once fulfilled
+ *   (`orderItems[].gameKeys`, filtered to status SOLD - empty until the
+ *   webhook has run).
+ * @returns {404} No order matches that session id for the current user.
+ */
 router.get('/by-session/:sessionId', async (req, res) => {
   try {
     const order = await prisma.order.findFirst({

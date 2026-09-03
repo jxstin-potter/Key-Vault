@@ -130,10 +130,8 @@ export default function AdminSettings() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Store Name
-          </label>
-          <input
+          <label htmlFor="store-name" className="block text-sm font-medium text-neutral-700 mb-2">Store Name</label>
+          <input id="store-name"
             type="text"
             value={storeSettings.name}
             onChange={(e) => setStoreSettings(prev => ({ ...prev, name: e.target.value }))}
@@ -141,10 +139,8 @@ export default function AdminSettings() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Store Email
-          </label>
-          <input
+          <label htmlFor="store-email" className="block text-sm font-medium text-neutral-700 mb-2">Store Email</label>
+          <input id="store-email"
             type="email"
             value={storeSettings.email}
             onChange={(e) => setStoreSettings(prev => ({ ...prev, email: e.target.value }))}
@@ -154,10 +150,8 @@ export default function AdminSettings() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Store Description
-        </label>
-        <textarea
+        <label htmlFor="store-description" className="block text-sm font-medium text-neutral-700 mb-2">Store Description</label>
+        <textarea id="store-description"
           value={storeSettings.description}
           onChange={(e) => setStoreSettings(prev => ({ ...prev, description: e.target.value }))}
           rows={3}
@@ -167,10 +161,8 @@ export default function AdminSettings() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Phone Number
-          </label>
-          <input
+          <label htmlFor="phone-number" className="block text-sm font-medium text-neutral-700 mb-2">Phone Number</label>
+          <input id="phone-number"
             type="tel"
             value={storeSettings.phone}
             onChange={(e) => setStoreSettings(prev => ({ ...prev, phone: e.target.value }))}
@@ -178,10 +170,8 @@ export default function AdminSettings() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Currency
-          </label>
-          <select
+          <label htmlFor="currency" className="block text-sm font-medium text-neutral-700 mb-2">Currency</label>
+          <select id="currency"
             value={storeSettings.currency}
             onChange={(e) => setStoreSettings(prev => ({ ...prev, currency: e.target.value }))}
             className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -226,7 +216,7 @@ export default function AdminSettings() {
           Store Address
         </label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
+          <input aria-label="Street Address"
             type="text"
             placeholder="Street Address"
             value={storeSettings.address.street}
@@ -236,7 +226,7 @@ export default function AdminSettings() {
             }))}
             className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
-          <input
+          <input aria-label="City"
             type="text"
             placeholder="City"
             value={storeSettings.address.city}
@@ -246,7 +236,7 @@ export default function AdminSettings() {
             }))}
             className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
-          <input
+          <input aria-label="State"
             type="text"
             placeholder="State"
             value={storeSettings.address.state}
@@ -256,7 +246,7 @@ export default function AdminSettings() {
             }))}
             className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
-          <input
+          <input aria-label="ZIP Code"
             type="text"
             placeholder="ZIP Code"
             value={storeSettings.address.zipCode}
@@ -275,10 +265,8 @@ export default function AdminSettings() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            First Name
-          </label>
-          <input
+          <label htmlFor="first-name" className="block text-sm font-medium text-neutral-700 mb-2">First Name</label>
+          <input id="first-name"
             type="text"
             value={userSettings.firstName}
             onChange={(e) => setUserSettings(prev => ({ ...prev, firstName: e.target.value }))}
@@ -286,10 +274,8 @@ export default function AdminSettings() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Last Name
-          </label>
-          <input
+          <label htmlFor="last-name" className="block text-sm font-medium text-neutral-700 mb-2">Last Name</label>
+          <input id="last-name"
             type="text"
             value={userSettings.lastName}
             onChange={(e) => setUserSettings(prev => ({ ...prev, lastName: e.target.value }))}
@@ -299,10 +285,8 @@ export default function AdminSettings() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Email Address
-        </label>
-        <input
+        <label htmlFor="email-address" className="block text-sm font-medium text-neutral-700 mb-2">Email Address</label>
+        <input id="email-address"
           type="email"
           value={userSettings.email}
           onChange={(e) => setUserSettings(prev => ({ ...prev, email: e.target.value }))}
@@ -320,7 +304,8 @@ export default function AdminSettings() {
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                value={userSettings.currentPassword}
+                aria-label="Current password"
+              value={userSettings.currentPassword}
                 onChange={(e) => setUserSettings(prev => ({ ...prev, currentPassword: e.target.value }))}
                 className="w-full pl-4 pr-12 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
@@ -335,10 +320,8 @@ export default function AdminSettings() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                New Password
-              </label>
-              <input
+              <label htmlFor="new-password" className="block text-sm font-medium text-neutral-700 mb-2">New Password</label>
+              <input id="new-password"
                 type="password"
                 value={userSettings.newPassword}
                 onChange={(e) => setUserSettings(prev => ({ ...prev, newPassword: e.target.value }))}
@@ -346,10 +329,8 @@ export default function AdminSettings() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Confirm New Password
-              </label>
-              <input
+              <label htmlFor="confirm-new-password" className="block text-sm font-medium text-neutral-700 mb-2">Confirm New Password</label>
+              <input id="confirm-new-password"
                 type="password"
                 value={userSettings.confirmPassword}
                 onChange={(e) => setUserSettings(prev => ({ ...prev, confirmPassword: e.target.value }))}
@@ -386,10 +367,8 @@ export default function AdminSettings() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Session Timeout (minutes)
-        </label>
-        <input
+        <label htmlFor="session-timeout-minutes" className="block text-sm font-medium text-neutral-700 mb-2">Session Timeout (minutes)</label>
+        <input id="session-timeout-minutes"
           type="number"
           value={securitySettings.sessionTimeout}
           onChange={(e) => setSecuritySettings(prev => ({ ...prev, sessionTimeout: parseInt(e.target.value) }))}
@@ -398,10 +377,8 @@ export default function AdminSettings() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Password Expiry (days)
-        </label>
-        <input
+        <label htmlFor="password-expiry-days" className="block text-sm font-medium text-neutral-700 mb-2">Password Expiry (days)</label>
+        <input id="password-expiry-days"
           type="number"
           value={securitySettings.passwordExpiry}
           onChange={(e) => setSecuritySettings(prev => ({ ...prev, passwordExpiry: parseInt(e.target.value) }))}
@@ -410,10 +387,8 @@ export default function AdminSettings() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Maximum Login Attempts
-        </label>
-        <input
+        <label htmlFor="maximum-login-attempts" className="block text-sm font-medium text-neutral-700 mb-2">Maximum Login Attempts</label>
+        <input id="maximum-login-attempts"
           type="number"
           value={securitySettings.loginAttempts}
           onChange={(e) => setSecuritySettings(prev => ({ ...prev, loginAttempts: parseInt(e.target.value) }))}
@@ -480,10 +455,8 @@ export default function AdminSettings() {
       {paymentSettings.stripeEnabled && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Stripe Publishable Key
-            </label>
-            <input
+            <label htmlFor="stripe-publishable-key" className="block text-sm font-medium text-neutral-700 mb-2">Stripe Publishable Key</label>
+            <input id="stripe-publishable-key"
               type="text"
               value={paymentSettings.stripePublishableKey}
               onChange={(e) => setPaymentSettings(prev => ({ ...prev, stripePublishableKey: e.target.value }))}
@@ -491,10 +464,8 @@ export default function AdminSettings() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Stripe Secret Key
-            </label>
-            <input
+            <label htmlFor="stripe-secret-key" className="block text-sm font-medium text-neutral-700 mb-2">Stripe Secret Key</label>
+            <input id="stripe-secret-key"
               type="password"
               value={paymentSettings.stripeSecretKey}
               onChange={(e) => setPaymentSettings(prev => ({ ...prev, stripeSecretKey: e.target.value }))}
@@ -531,10 +502,8 @@ export default function AdminSettings() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Free Shipping Threshold ($)
-          </label>
-          <input
+          <label htmlFor="free-shipping-threshold" className="block text-sm font-medium text-neutral-700 mb-2">Free Shipping Threshold ($)</label>
+          <input id="free-shipping-threshold"
             type="number"
             value={shippingSettings.freeShippingThreshold}
             onChange={(e) => setShippingSettings(prev => ({ ...prev, freeShippingThreshold: parseFloat(e.target.value) }))}
@@ -542,10 +511,8 @@ export default function AdminSettings() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
-            Default Shipping Rate ($)
-          </label>
-          <input
+          <label htmlFor="default-shipping-rate" className="block text-sm font-medium text-neutral-700 mb-2">Default Shipping Rate ($)</label>
+          <input id="default-shipping-rate"
             type="number"
             value={shippingSettings.defaultShippingRate}
             onChange={(e) => setShippingSettings(prev => ({ ...prev, defaultShippingRate: parseFloat(e.target.value) }))}
@@ -560,7 +527,7 @@ export default function AdminSettings() {
           {shippingSettings.shippingZones.map((zone, index) => (
             <div key={index} className="flex items-center space-x-4 p-4 border border-neutral-200 rounded-lg">
               <div className="flex-1">
-                <input
+                <input aria-label="Zone Name"
                   type="text"
                   value={zone.name}
                   onChange={(e) => {
@@ -573,7 +540,7 @@ export default function AdminSettings() {
                 />
               </div>
               <div className="w-24">
-                <input
+                <input aria-label="Rate"
                   type="number"
                   value={zone.rate}
                   onChange={(e) => {
@@ -620,12 +587,14 @@ export default function AdminSettings() {
           <div className="flex items-center space-x-2">
             <input
               type="color"
+              aria-label="Primary colour swatch"
               value={themeSettings.primaryColor}
               onChange={(e) => setThemeSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
               className="w-12 h-12 border border-neutral-300 rounded-lg cursor-pointer"
             />
             <input
               type="text"
+              aria-label="Primary colour hex value"
               value={themeSettings.primaryColor}
               onChange={(e) => setThemeSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
               className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -639,12 +608,14 @@ export default function AdminSettings() {
           <div className="flex items-center space-x-2">
             <input
               type="color"
+              aria-label="Secondary colour swatch"
               value={themeSettings.secondaryColor}
               onChange={(e) => setThemeSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
               className="w-12 h-12 border border-neutral-300 rounded-lg cursor-pointer"
             />
             <input
               type="text"
+              aria-label="Secondary colour hex value"
               value={themeSettings.secondaryColor}
               onChange={(e) => setThemeSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
               className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -658,12 +629,14 @@ export default function AdminSettings() {
           <div className="flex items-center space-x-2">
             <input
               type="color"
+              aria-label="Accent colour swatch"
               value={themeSettings.accentColor}
               onChange={(e) => setThemeSettings(prev => ({ ...prev, accentColor: e.target.value }))}
               className="w-12 h-12 border border-neutral-300 rounded-lg cursor-pointer"
             />
             <input
               type="text"
+              aria-label="Accent colour hex value"
               value={themeSettings.accentColor}
               onChange={(e) => setThemeSettings(prev => ({ ...prev, accentColor: e.target.value }))}
               className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"

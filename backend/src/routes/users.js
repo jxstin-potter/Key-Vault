@@ -4,7 +4,15 @@ import { requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get all users (admin only)
+/**
+ * @route GET /api/users
+ * @access Admin only
+ * @description List every user with computed order stats (total spent,
+ *   average order value, counted from COMPLETED orders only).
+ * @returns {200} `{ users }` - newest account first. Each user includes
+ *   `orderCount`, `reviewCount`, `totalSpent`, `totalOrders`,
+ *   `averageOrderValue`, and a coarse `status` ('admin' | 'active').
+ */
 router.get('/', requireAdmin, async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -53,7 +61,6 @@ router.get('/', requireAdmin, async (req, res) => {
         totalOrders: user._count.orders,
         averageOrderValue: Math.round(averageOrderValue * 100) / 100,
         status: user.role === 'ADMIN' ? 'admin' : 'active', // Simple status logic
-        phone: 'N/A', // Placeholder since we don't have phone in schema
         orders: undefined, // Remove orders array to keep response clean
       _count: undefined
       };
@@ -65,7 +72,32 @@ router.get('/', requireAdmin, async (req, res) => {
   }
 });
 
-// Get user by ID (admin only)
+/**
+ * @route GET /api/users/info
+ * @access Authenticated (this whole router is mounted behind
+ *   authenticateToken in app.js; unlike most other routes here, no
+ *   requireAdmin check is layered on top of that for this one)
+ * @description Static usage hint for this router. Registered before the
+ *   parameterised '/:id' route below - Express matches path routes in
+ *   registration order, so a literal path like this one must come first or
+ *   '/:id' would swallow it (matching with `id: 'info'`) before it ever got
+ *   a chance to run.
+ * @returns {200} `{ message }`.
+ */
+router.get('/info', (req, res) => {
+  res.json({
+    message: 'GET /api/users returns user info (admin only). Use POST, PUT, DELETE for user actions.'
+  });
+});
+
+/**
+ * @route GET /api/users/:id
+ * @access Admin only
+ * @description Fetch one user's profile, full order history, and reviews.
+ * @param {string} req.params.id - User id.
+ * @returns {200} `{ user }` including `orderCount` and `reviewCount`.
+ * @returns {404} User not found.
+ */
 router.get('/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -129,7 +161,16 @@ router.get('/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// Update user role (admin only)
+/**
+ * @route PUT /api/users/:id/role
+ * @access Admin only
+ * @description Promote or demote a user between USER and ADMIN.
+ * @param {string} req.params.id - User id.
+ * @param {'USER'|'ADMIN'} req.body.role
+ * @returns {200} `{ message, user }`.
+ * @returns {400} `role` is missing or not one of the two allowed values.
+ * @returns {404} User not found.
+ */
 router.put('/:id/role', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -169,14 +210,16 @@ router.put('/:id/role', requireAdmin, async (req, res) => {
   }
 });
 
-// Add GET /info for demo
-router.get('/info', (req, res) => {
-  res.json({
-    message: 'GET /api/users returns user info (admin only). Use POST, PUT, DELETE for user actions.'
-  });
-});
-
-// Get user statistics (for current user)
+/**
+ * @route GET /api/users/me/stats
+ * @access Authenticated
+ * @description The caller's own summary stats - order/review/cart-item
+ *   counts and spend, computed from COMPLETED orders only.
+ * @returns {200} `{ stats: { orderCount, reviewCount, cartItemCount,
+ *   totalSpent, averageOrderValue, completedOrders } }`.
+ * @returns {404} User not found (should not occur for a valid token, since
+ *   authenticateToken already re-verifies the account exists).
+ */
 router.get('/me/stats', async (req, res) => {
   try {
     const stats = await prisma.user.findUnique({

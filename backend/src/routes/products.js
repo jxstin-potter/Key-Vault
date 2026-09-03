@@ -25,13 +25,43 @@ const SORT_OPTIONS = {
   popular: { reviews: { _count: 'desc' } }
 };
 
+/**
+ * Reshape a Prisma product (with `_count.gameKeys` included via
+ * AVAILABLE_KEYS) into the client-facing shape, replacing the Prisma count
+ * wrapper with a plain `stock` number so API consumers never see the
+ * underlying query structure.
+ * @param {object|null} product - A product record queried with `_count: AVAILABLE_KEYS`.
+ * @returns {object|null} The same product with `_count` replaced by `stock`.
+ */
 const withStock = (product) => {
   if (!product) return product;
   const { _count, ...rest } = product;
   return { ...rest, stock: _count?.gameKeys ?? 0 };
 };
 
-// Get all products with filtering and pagination
+/**
+ * @route GET /api/products
+ * @access Public
+ * @description List active products with filtering, search, sorting, and
+ *   pagination.
+ * @param {number} [req.query.page=1]
+ * @param {number} [req.query.limit=10] - Max 1000.
+ * @param {string} [req.query.category] - Matched against category name,
+ *   slug, or id (whichever the caller happens to hold).
+ * @param {string} [req.query.search] - Case-insensitive match against name/description.
+ * @param {number} [req.query.minPrice]
+ * @param {number} [req.query.maxPrice]
+ * @param {'name'|'price'|'createdAt'} [req.query.sortBy='createdAt'] - Legacy sort param.
+ * @param {'asc'|'desc'} [req.query.sortOrder='desc']
+ * @param {keyof SORT_OPTIONS} [req.query.sort] - Preferred sort param; takes
+ *   priority over sortBy/sortOrder when present.
+ * @param {string} [req.query.platform] - One of PLATFORMS.
+ * @param {string} [req.query.region] - One of REGIONS.
+ * @param {boolean} [req.query.inStock] - Filter to products with at least one AVAILABLE key.
+ * @returns {200} `{ products, pagination: { page, limit, total, pages } }`.
+ *   Each product carries a derived `stock` count, not a stored value.
+ * @returns {400} A query parameter failed validation.
+ */
 router.get('/', [
   query('page').optional().isInt({ min: 1 }).toInt(),
   query('limit').optional().isInt({ min: 1, max: 1000 }).toInt(),
@@ -75,7 +105,12 @@ router.get('/', [
     };
 
     if (category) {
-      where.category = { name: category };
+      // Accept whichever handle the caller happens to hold. The catalogue UI
+      // links by name (?category=Action), Categories.jsx and shareable links
+      // read better with a slug, and API clients naturally have the id.
+      // Matching all three costs one indexed lookup and removes a class of
+      // "why does this filter silently return nothing" bug.
+      where.category = { OR: [{ name: category }, { slug: category }, { id: category }] };
     }
 
     if (platform) where.platform = platform;
@@ -135,20 +170,38 @@ router.get('/', [
   }
 });
 
-// Add GET /info for demo
+/**
+ * @route GET /api/products/info
+ * @access Public
+ * @description Static usage hint for this router.
+ * @returns {200} `{ message }`.
+ */
 router.get('/info', (req, res) => {
   res.json({
     message: 'GET /api/products returns all products. Use POST, PUT, DELETE for admin actions.'
   });
 });
 
-// Get single product
+/**
+ * @route GET /api/products/:id
+ * @access Public
+ * @description Fetch one product with its reviews and derived stock. Looks
+ *   up by id OR slug in one query, so both a database id and a pretty URL
+ *   (`/products/elden-ring`) resolve.
+ * @param {string} req.params.id - Product id or slug.
+ * @returns {200} `{ product }` including nested `reviews` (with reviewer name).
+ * @returns {404} No product matches that id or slug.
+ */
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await prisma.product.findUnique({
-      where: { id },
+    // Look up by id or slug. Products carry a unique slug that nothing could
+    // previously resolve, so /products/elden-ring 404'd while the far uglier
+    // /products/clx8k2p0a0000qw3f8h2n1m4t worked. findFirst rather than
+    // findUnique because this is now a two-column OR.
+    const product = await prisma.product.findFirst({
+      where: { OR: [{ id }, { slug: id }] },
       include: {
         category: {
           select: { id: true, name: true }
@@ -177,7 +230,28 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create product (admin only)
+/**
+ * @route POST /api/products
+ * @access Admin only
+ * @description Create a new product listing. Note this only creates the
+ *   listing itself - sellable inventory is added separately as game_keys
+ *   rows (see routes/keys.js), since a product with zero keys is a valid,
+ *   simply out-of-stock, listing.
+ * @param {string} req.body.name
+ * @param {string} req.body.description
+ * @param {number} req.body.price
+ * @param {string} req.body.categoryId
+ * @param {string[]} req.body.images
+ * @param {string} req.body.slug - URL slug, must be unique.
+ * @param {string} req.body.platform - One of PLATFORMS.
+ * @param {string} req.body.region - One of REGIONS.
+ * @param {string} [req.body.developer]
+ * @param {string} [req.body.publisher]
+ * @param {string} [req.body.releaseDate] - ISO 8601 date.
+ * @returns {201} `{ message, product }`.
+ * @returns {400} Validation failed, or `categoryId` doesn't match a real category.
+ * @returns {403} Caller is not an admin.
+ */
 router.post('/', authenticateToken, requireAdmin, [
   body('name').trim().isLength({ min: 1, max: 255 }),
   body('description').trim().isLength({ min: 1 }),
@@ -239,7 +313,19 @@ router.post('/', authenticateToken, requireAdmin, [
   }
 });
 
-// Update product (admin only)
+/**
+ * @route PUT /api/products/:id
+ * @access Admin only
+ * @description Partially update a product. All body fields are optional;
+ *   only the fields present are changed.
+ * @param {string} req.params.id - Product id.
+ * @param {object} req.body - Any subset of the fields accepted by POST /,
+ *   plus `isActive` to hide/show the listing without deleting it.
+ * @returns {200} `{ message, product }`.
+ * @returns {400} Validation failed, or a provided `categoryId` doesn't exist.
+ * @returns {403} Caller is not an admin.
+ * @returns {404} Product not found.
+ */
 router.put('/:id', authenticateToken, requireAdmin, [
   body('name').optional().trim().isLength({ min: 1, max: 255 }),
   body('description').optional().trim().isLength({ min: 1 }),
@@ -302,7 +388,17 @@ router.put('/:id', authenticateToken, requireAdmin, [
   }
 });
 
-// Bulk delete products (admin only)
+/**
+ * @route DELETE /api/products/bulk
+ * @access Admin only
+ * @description Soft-delete several products at once (sets `isActive: false`
+ *   on each; rows are never hard-deleted, preserving order history that
+ *   references them).
+ * @param {string[]} req.body.productIds - At least one product id.
+ * @returns {200} `{ message, deletedCount }`.
+ * @returns {400} Empty array, or one or more ids don't match a real product.
+ * @returns {403} Caller is not an admin.
+ */
 router.delete('/bulk', authenticateToken, requireAdmin, [
   body('productIds').isArray({ min: 1 }).withMessage('At least one product ID is required')
 ], async (req, res) => {
@@ -338,7 +434,16 @@ router.delete('/bulk', authenticateToken, requireAdmin, [
   }
 });
 
-// Delete product (admin only)
+/**
+ * @route DELETE /api/products/:id
+ * @access Admin only
+ * @description Soft-delete a single product (`isActive: false`), same
+ *   reasoning as the bulk variant above.
+ * @param {string} req.params.id - Product id.
+ * @returns {200} `{ message }`.
+ * @returns {403} Caller is not an admin.
+ * @returns {404} Product not found.
+ */
 router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;

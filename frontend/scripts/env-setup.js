@@ -8,7 +8,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const envLocalPath = path.join(__dirname, '..', '.env.local');
-const envExamplePath = path.join(__dirname, '..', 'env.example');
 
 function createLocalEnv() {
   const localEnvContent = `# Local Development Environment
@@ -22,7 +21,6 @@ VITE_ENV=development
 }
 
 function checkEnvironment() {
-  const isDev = process.env.NODE_ENV === 'development';
   const hasLocalEnv = fs.existsSync(envLocalPath);
   
   console.log('\n🔍 Environment Check:');

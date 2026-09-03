@@ -35,9 +35,55 @@ export const api = axios.create({
   },
 });
 
+// ---------------------------------------------------------------------------
+// Cold-start signalling
+//
+// The API sleeps on Render's free tier and takes 30-60s to wake. During that
+// window every request simply hangs, and a first-time visitor sees an empty
+// store with a spinner and concludes the site is broken - which is a terrible
+// first impression for something whose whole point is that it works.
+//
+// Rather than guess up front, this watches actual request latency: if anything
+// is still in flight after a few seconds, subscribers are told the backend is
+// probably waking, and told again when it lands. A warm server never crosses
+// the threshold, so the message only appears when it is true.
+// ---------------------------------------------------------------------------
+const COLD_START_HINT_MS = 3500;
+
+let inFlight = 0;
+let hintTimer = null;
+const wakingListeners = new Set();
+
+const emitWaking = (isWaking) => {
+  for (const listener of wakingListeners) listener(isWaking);
+};
+
+/** Subscribe to cold-start state. Returns an unsubscribe function. */
+export function onBackendWaking(listener) {
+  wakingListeners.add(listener);
+  return () => wakingListeners.delete(listener);
+}
+
+function requestStarted() {
+  inFlight += 1;
+  if (inFlight === 1 && !hintTimer) {
+    hintTimer = setTimeout(() => emitWaking(true), COLD_START_HINT_MS);
+  }
+}
+
+function requestSettled() {
+  inFlight = Math.max(0, inFlight - 1);
+  if (inFlight === 0) {
+    clearTimeout(hintTimer);
+    hintTimer = null;
+    emitWaking(false);
+  }
+}
+
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
+    requestStarted();
     // Add auth token if available
     const token = useAuthStore.getState().token;
     if (token) {
@@ -46,6 +92,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    requestSettled();
     return Promise.reject(error);
   }
 );
@@ -53,9 +100,11 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
+    requestSettled();
     return response;
   },
   (error) => {
+    requestSettled();
     const { response } = error;
 
     if (response?.status === 401) {

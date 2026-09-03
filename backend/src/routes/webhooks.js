@@ -1,20 +1,38 @@
 import express from 'express';
 import stripe, { isStripeConfigured } from '../lib/stripe.js';
+import prisma from '../lib/prisma.js';
 import { fulfillOrder, abandonOrder } from '../lib/fulfillment.js';
+import { markOrderRefunded } from '../lib/refunds.js';
 
 const router = express.Router();
 
 /**
- * POST /api/webhooks/stripe
+ * @route POST /api/webhooks/stripe
+ * @access Public, but signature-verified (Stripe, not a browser, calls this)
+ * @description Receives all Stripe Checkout/Charge events. Fulfilment lives
+ *   here, not on the success redirect, so a customer who closes the tab
+ *   after paying still receives their keys.
  *
- * Fulfilment lives here, not on the success redirect, so a customer who closes
- * the tab after paying still receives their keys.
+ *   This route is mounted with express.raw() ABOVE the global express.json()
+ *   in app.js. Signature verification hashes the exact bytes Stripe sent, so
+ *   if a JSON parser reaches the body first every request fails with
+ *   "No signatures found matching the expected signature" even with a
+ *   correct secret. That mounting order is load-bearing - do not move it.
  *
- * This route is mounted with express.raw() ABOVE the global express.json() in
- * server.js. Signature verification hashes the exact bytes Stripe sent, so if
- * a JSON parser reaches the body first every request fails with
- * "No signatures found matching the expected signature" even with a correct
- * secret. That mounting order is load-bearing - do not move it.
+ *   Stripe guarantees at-least-once delivery and retries on any non-2xx
+ *   response, so every branch here must be idempotent (fulfillOrder,
+ *   abandonOrder, and markOrderRefunded all are - see lib/fulfillment.js and
+ *   lib/refunds.js) and a transient failure must return 500 to ask for a
+ *   retry rather than silently swallowing the event with a 200.
+ * @param {Buffer} req.body - Raw (unparsed) request body, required for
+ *   `stripe.webhooks.constructEvent` to verify the signature.
+ * @param {string} req.headers.stripe-signature - Stripe's signature header.
+ * @returns {200} `{ received: true }` - event handled (including a no-op for
+ *   an event type not handled below, or a duplicate/already-processed one).
+ * @returns {400} Signature verification failed - Stripe will not retry a 4xx.
+ * @returns {500} An error occurred while processing a verified event - asks
+ *   Stripe to retry, safe because every handler below is idempotent.
+ * @returns {503} Stripe or the webhook secret is not configured.
  */
 router.post('/', async (req, res) => {
   if (!isStripeConfigured || !process.env.STRIPE_WEBHOOK_SECRET) {
@@ -85,6 +103,42 @@ router.post('/', async (req, res) => {
         const session = event.data.object;
         const orderId = session.metadata?.orderId || session.client_reference_id;
         if (orderId) await abandonOrder(orderId, 'FAILED');
+        break;
+      }
+
+      // A refund can start in the Stripe dashboard rather than in our admin
+      // area - a support agent handling a chargeback, say. Without this case
+      // the money would go back and our database would still show the order
+      // COMPLETED with working keys. It is also the reconciliation path for a
+      // refund that succeeded at Stripe but failed to record here.
+      case 'charge.refunded': {
+        const charge = event.data.object;
+        const paymentIntentId =
+          typeof charge.payment_intent === 'string' ? charge.payment_intent : null;
+
+        if (!paymentIntentId) {
+          console.error('charge.refunded with no payment_intent', charge.id);
+          break;
+        }
+
+        const order = await prisma.order.findFirst({
+          where: { paymentIntent: paymentIntentId },
+          select: { id: true }
+        });
+
+        if (!order) {
+          // Not necessarily an error: the charge may belong to another system
+          // sharing this Stripe account.
+          console.warn(`charge.refunded for unknown payment intent ${paymentIntentId}`);
+          break;
+        }
+
+        const result = await markOrderRefunded(order.id, { refundId: charge.id });
+        console.log(
+          result.alreadyRefunded
+            ? `Order ${order.id} already refunded - duplicate delivery ignored`
+            : `Order ${order.id} refunded, ${result.revokedKeys} keys revoked`
+        );
         break;
       }
 

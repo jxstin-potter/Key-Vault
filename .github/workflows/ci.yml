@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push to the same branch makes the previous run irrelevant. Cancelling
+# it keeps queue times short and stops two runs racing to report a status.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+
+    # The suite runs against a real PostgreSQL instance rather than a mocked
+    # Prisma client, because the guarantee it exists to protect - that two
+    # buyers racing for the last key cannot both get it - is a property of
+    # what Postgres does with a conditional UPDATE and SELECT ... FOR UPDATE
+    # SKIP LOCKED. A mock would prove nothing.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: keyvault_test
+        ports:
+          - 5432:5432
+        # Without a health check the test step can start before Postgres is
+        # accepting connections, producing a confusing P1001 on a good commit.
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/keyvault_test?connection_limit=30&pool_timeout=20
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/keyvault_test
+      JWT_SECRET: ci-secret-that-is-at-least-32-characters-long
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate
+
+      - name: Verify migrations reproduce the schema
+        working-directory: backend
+        # The test suite prepares its database with `db push`, which happily
+        # papers over a migration nobody wrote. That is exactly how this
+        # repository ended up with a migration history describing a physical
+        # goods store - no game_keys table, a stored `stock` column - while
+        # the running schema was a key marketplace. `migrate deploy` on a
+        # fresh database produced the wrong database entirely, and nothing
+        # noticed for a year.
+        #
+        # This replays the migration history into a clean shadow database and
+        # fails if the result differs from schema.prisma, so the deploy path
+        # is checked on every pull request rather than on the day it matters.
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres \
+            -c "DROP DATABASE IF EXISTS keyvault_shadow;" \
+            -c "CREATE DATABASE keyvault_shadow;"
+          npx prisma migrate diff \
+            --from-migrations prisma/migrations \
+            --to-schema-datamodel prisma/schema.prisma \
+            --shadow-database-url "postgresql://postgres:postgres@localhost:5432/keyvault_shadow" \
+            --exit-code || {
+              echo "::error::schema.prisma has changes that no migration creates."
+              echo "::error::Run: npx prisma migrate dev --name <describe-the-change>"
+              exit 1
+            }
+
+      - name: Run tests
+        working-directory: backend
+        run: npm run test:coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          retention-days: 7
+
+  frontend:
+    name: Frontend lint and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: frontend
+        # Vite inlines this at build time. A production bundle built without it
+        # cannot recover at runtime, so the build must be given a value even
+        # though CI never calls the API.
+        env:
+          VITE_API_URL: https://example.invalid/api
+        run: npm run build
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Advisory, not blocking: a transitive advisory with no available fix
+      # should be visible without wedging every unrelated pull request.
+      - name: Audit backend
+        working-directory: backend
+        run: npm audit --audit-level=high || true
+
+      - name: Audit frontend
+        working-directory: frontend
+        run: npm audit --audit-level=high || true

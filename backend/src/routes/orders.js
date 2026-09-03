@@ -1,10 +1,18 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import prisma from '../lib/prisma.js';
+import { refundOrder, RefundNotAllowedError, RefundGatewayError } from '../lib/refunds.js';
 
 const router = express.Router();
 
-// Get user's orders (or all orders for admin)
+/**
+ * @route GET /api/orders
+ * @access Authenticated (self); admins see every order
+ * @description List orders. A regular user sees only their own; an admin
+ *   sees the whole store's order history.
+ * @returns {200} `{ orders }` - each with its user summary and order items
+ *   (including product name/image/price), newest first.
+ */
 router.get('/', async (req, res) => {
   try {
     const isAdmin = req.user.role === 'ADMIN';
@@ -43,7 +51,15 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get order statistics (admin only)
+/**
+ * @route GET /api/orders/stats
+ * @access Admin only
+ * @description Summary figures for the admin dashboard: order counts by
+ *   status, total revenue, and the five most recent orders.
+ * @returns {200} `{ stats: { totalOrders, totalRevenue, pendingOrders,
+ *   completedOrders }, recentOrders }`.
+ * @returns {403} Caller is not an admin.
+ */
 router.get('/stats', async (req, res) => {
   try {
     if (req.user.role !== 'ADMIN') {
@@ -90,14 +106,29 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// Add GET /info for demo
+/**
+ * @route GET /api/orders/info
+ * @access Authenticated
+ * @description Static usage hint for this router, mostly useful when
+ *   exploring the API by hand.
+ * @returns {200} `{ message }`.
+ */
 router.get('/info', (req, res) => {
   res.json({
     message: 'GET /api/orders returns user orders (requires auth). Use POST, PUT, DELETE for order actions.'
   });
 });
 
-// Get single order
+/**
+ * @route GET /api/orders/:id
+ * @access Authenticated (own orders only); admins can view any order
+ * @description Fetch one order with its line items and product summaries.
+ * @param {string} req.params.id - Order id.
+ * @returns {200} `{ order }`.
+ * @returns {404} Not found, or the order belongs to a different (non-admin)
+ *   user - the two cases are indistinguishable on purpose, so a customer
+ *   probing ids can't learn whether an id exists at all.
+ */
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -140,7 +171,27 @@ router.get('/:id', async (req, res) => {
 // now runs through Stripe: routes/checkout.js opens the session and
 // routes/webhooks.js fulfils the order once payment clears.
 
-// Update order status (admin only)
+/**
+ * @route PUT /api/orders/:id/status
+ * @access Admin only
+ * @description Change an order's status. Setting `status: 'REFUNDED'` is
+ *   special-cased to route through refundOrder() (lib/refunds.js) rather
+ *   than writing the column directly - see the comment above that branch for
+ *   why a direct write would silently lie to the customer. Every other
+ *   status is a plain field update.
+ * @param {string} req.params.id - Order id.
+ * @param {'PENDING'|'PAID'|'COMPLETED'|'FAILED'|'CANCELLED'|'REFUNDED'} req.body.status
+ * @returns {200} For a refund: `{ message, order, revokedKeys, alreadyRefunded }`.
+ *   For any other status: `{ message, order }`.
+ * @returns {400} `status` missing or not one of the allowed values.
+ * @returns {403} Caller is not an admin.
+ * @returns {404} Order not found.
+ * @returns {409} Refund requested on an order that isn't PAID/COMPLETED
+ *   (RefundNotAllowedError).
+ * @returns {502} Refund requested but Stripe rejected the refund call
+ *   (RefundGatewayError) - distinguished from a 500 so an operator can tell
+ *   "our bug" from "the payment provider said no" without reading logs.
+ */
 router.put('/:id/status', [
   body('status').isIn(['PENDING', 'PAID', 'COMPLETED', 'FAILED', 'CANCELLED', 'REFUNDED'])
 ], async (req, res) => {
@@ -174,6 +225,34 @@ router.put('/:id/status', [
       return res.status(404).json({ message: 'Order not found' });
     }
 
+    // REFUNDED is not a label, it is an action. Writing the column directly
+    // would tell the customer they had been refunded while their money stayed
+    // taken and their keys kept working - which is what this endpoint used to
+    // do. Route it through the refund service, which moves the money at Stripe
+    // and revokes the delivered keys.
+    if (status === 'REFUNDED') {
+      const result = await refundOrder(id);
+
+      const refreshed = await prisma.order.findUnique({
+        where: { id },
+        include: {
+          user: { select: { firstName: true, lastName: true, email: true } },
+          orderItems: {
+            include: { product: { select: { id: true, name: true, images: true } } }
+          }
+        }
+      });
+
+      return res.json({
+        message: result.alreadyRefunded
+          ? 'Order was already refunded'
+          : `Order refunded and ${result.revokedKeys} key(s) revoked`,
+        order: refreshed,
+        revokedKeys: result.revokedKeys,
+        alreadyRefunded: !!result.alreadyRefunded
+      });
+    }
+
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: { status },
@@ -204,6 +283,16 @@ router.put('/:id/status', [
       order: updatedOrder
     });
   } catch (error) {
+    if (error instanceof RefundNotAllowedError) {
+      return res.status(409).json({ message: error.message });
+    }
+    // The refund failed upstream, at Stripe. 502 rather than 500 so the
+    // operator can tell "our bug" from "the payment provider said no" without
+    // reading logs.
+    if (error instanceof RefundGatewayError) {
+      return res.status(502).json({ message: 'The payment provider rejected the refund' });
+    }
+    req.log?.error({ err: error, orderId: req.params.id }, 'Failed to update order status');
     res.status(500).json({ message: 'Failed to update order status' });
   }
 });

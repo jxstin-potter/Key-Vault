@@ -3,16 +3,71 @@ services:
     name: commerceflow-backend
     env: node
     plan: free
-    buildCommand: npm install
+
+    # `migrate deploy` runs here rather than in startCommand so a bad
+    # migration fails the build and Render keeps serving the previous
+    # instance, instead of restart-looping a live service. It is a no-op when
+    # there is nothing new to apply.
+    #
+    # A database provisioned by `prisma db push` (which is how this one was
+    # first created) needs its baseline recorded once before this will work:
+    #   npx prisma migrate resolve --applied 20260902000000_digital_key_marketplace
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy
+
     startCommand: npm start
+
     envVars:
       - key: NODE_ENV
         value: production
+
+      # Use Neon's DIRECT connection string, not the pooled one. Prisma's
+      # migration and seed paths open multiple sequential connections, and
+      # PgBouncer in transaction mode makes them hang with no error.
       - key: DATABASE_URL
         sync: false
+
       - key: JWT_SECRET
         sync: false
+
       - key: FRONTEND_URL
         sync: false
+
+      # Payments. Without these the store still runs - the catalogue, accounts,
+      # cart and admin area all work, and only the checkout endpoints return
+      # 503. That is deliberate, so deploying payment code before the keys are
+      # configured cannot take the shop down.
+      #
+      # BUT: with them unset there is no way to complete a purchase, which
+      # means the one thing this project is actually about - reserve a key,
+      # pay, receive it instantly - is invisible to anyone visiting the live
+      # site. Set both, in Stripe TEST mode, so the demo works end to end with
+      # card 4242 4242 4242 4242.
+      #
+      # STRIPE_WEBHOOK_SECRET comes from the endpoint you register at
+      # https://dashboard.stripe.com/test/webhooks pointing at
+      #   https://<this-service>.onrender.com/api/webhooks/stripe
+      # subscribed to: checkout.session.completed,
+      # checkout.session.async_payment_succeeded,
+      # checkout.session.async_payment_failed, checkout.session.expired,
+      # charge.refunded.
+      #
+      # Fulfilment happens in that webhook, not on the success redirect. If the
+      # secret is wrong every delivery fails signature verification and
+      # customers pay without ever receiving a key.
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+      # Optional: the password for the seeded admin account. Unset in
+      # production, seeding generates a random one and prints it once to the
+      # deploy log.
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+
+    # Liveness only - this endpoint deliberately does not touch the database,
+    # so a brief database blip cannot cause Render to restart a process that is
+    # otherwise healthy. /health/ready is the one that checks dependencies.
     healthCheckPath: /health
+
     autoDeploy: true

@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "postinstall": "prisma generate",
     "build": "echo 'No build step needed for Node.js'",
     "deploy": "node deploy-setup.js",
@@ -38,10 +41,17 @@
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
-    "stripe": "^16.10.0"
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "stripe": "^16.10.0",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.11",
     "nodemon": "^3.1.10",
-    "prisma": "^6.11.1"
+    "pino-pretty": "^13.1.3",
+    "prisma": "^6.11.1",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.11"
   }
 }

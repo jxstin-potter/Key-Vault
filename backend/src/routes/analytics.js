@@ -9,7 +9,28 @@ const router = express.Router();
 const AVAILABLE_KEYS = { select: { gameKeys: { where: { status: "AVAILABLE" } } } };
 const LOW_STOCK_THRESHOLD = 10;
 
-// Test endpoint to check authentication
+// Which orders represent money the business actually received.
+//
+// An order row is created the moment someone clicks Checkout, before any
+// payment is attempted, and it stays there when they abandon the tab. It also
+// survives being cancelled, failing, and being refunded. Summing `total`
+// across every row - which is what this file used to do - counts abandoned
+// baskets and returned money as income, and reports roughly double the truth
+// on a store with a normal abandonment rate.
+//
+// PENDING is not revenue: nobody has paid. REFUNDED is not revenue: the money
+// went back. Only these two states mean funds arrived and stayed.
+const REVENUE_STATUSES = ["PAID", "COMPLETED"];
+const EARNED = { status: { in: REVENUE_STATUSES } };
+
+/**
+ * @route GET /api/analytics/test
+ * @access Admin only
+ * @description Diagnostic endpoint for confirming an admin token is
+ *   recognized - echoes the resolved `req.user` back to the caller.
+ * @returns {200} `{ message, user, timestamp }`.
+ * @returns {403} Caller is not an admin.
+ */
 router.get("/test", requireAdmin, (req, res) => {
   res.json({
     message: "Admin authentication working!",
@@ -18,13 +39,32 @@ router.get("/test", requireAdmin, (req, res) => {
   });
 });
 
-// Get dashboard overview statistics
+/**
+ * @route GET /api/analytics/overview
+ * @access Admin only
+ * @description The admin dashboard's headline numbers: totals, a 6-month
+ *   revenue trend, top-selling products, recent activity, and 30-day
+ *   growth versus the prior 30 days.
+ *
+ *   Every revenue and "sold" figure here is filtered to the EARNED status
+ *   set (PAID/COMPLETED) - see the module-level comment on EARNED above for
+ *   why an unfiltered sum over all orders roughly doubles the true number by
+ *   counting abandoned checkouts as income.
+ * @returns {200} `{ overview: { totalOrders, totalRevenue, totalUsers,
+ *   totalProducts, orderGrowth, revenueGrowth, orderStatuses,
+ *   monthlyRevenue, topProducts, recentOrders, recentUsers } }`.
+ *   `orderStatuses` is intentionally unfiltered (every status, including
+ *   PENDING/FAILED/CANCELLED) - that breakdown is exactly where an operator
+ *   would notice a broken webhook piling up unpaid orders.
+ * @returns {403} Caller is not an admin.
+ */
 router.get("/overview", requireAdmin, async (req, res) => {
   try {
     // Basic stats
-    const totalOrders = await prisma.order.count();
+    const totalOrders = await prisma.order.count({ where: EARNED });
     const totalRevenue = await prisma.order.aggregate({
       _sum: { total: true },
+      where: EARNED,
     });
     const totalUsers = await prisma.user.count({
       where: { role: "USER" },
@@ -47,6 +87,7 @@ router.get("/overview", requireAdmin, async (req, res) => {
       by: ["createdAt"],
       _sum: { total: true },
       where: {
+        ...EARNED,
         createdAt: {
           gte: sixMonthsAgo,
         },
@@ -57,6 +98,9 @@ router.get("/overview", requireAdmin, async (req, res) => {
     const topProducts = await prisma.orderItem.groupBy({
       by: ["productId"],
       _sum: { quantity: true },
+      // Without this, a product nobody bought outranks one that sold, purely
+      // on how often it was abandoned in a basket.
+      where: { order: EARNED },
       orderBy: {
         _sum: {
           quantity: "desc",
@@ -123,11 +167,12 @@ router.get("/overview", requireAdmin, async (req, res) => {
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
     const recentOrdersCount = await prisma.order.count({
-      where: { createdAt: { gte: thirtyDaysAgo } },
+      where: { ...EARNED, createdAt: { gte: thirtyDaysAgo } },
     });
 
     const previousOrdersCount = await prisma.order.count({
       where: {
+        ...EARNED,
         createdAt: {
           gte: sixtyDaysAgo,
           lt: thirtyDaysAgo,
@@ -137,12 +182,13 @@ router.get("/overview", requireAdmin, async (req, res) => {
 
     const recentRevenue = await prisma.order.aggregate({
       _sum: { total: true },
-      where: { createdAt: { gte: thirtyDaysAgo } },
+      where: { ...EARNED, createdAt: { gte: thirtyDaysAgo } },
     });
 
     const previousRevenue = await prisma.order.aggregate({
       _sum: { total: true },
       where: {
+        ...EARNED,
         createdAt: {
           gte: sixtyDaysAgo,
           lt: thirtyDaysAgo,
@@ -197,7 +243,25 @@ router.get("/overview", requireAdmin, async (req, res) => {
   }
 });
 
-// Get sales analytics with advanced filtering and CSV export
+/**
+ * @route GET /api/analytics/sales
+ * @access Admin only
+ * @description Sales figures over a date range, optionally filtered to one
+ *   product or category, and optionally exported as a CSV instead of JSON.
+ *   Like /overview, scoped to EARNED orders only - this is the report an
+ *   operator would hand to an accountant, and it must not include revenue
+ *   that never actually arrived.
+ * @param {string} [req.query.start] - ISO date, inclusive lower bound.
+ * @param {string} [req.query.end] - ISO date, inclusive upper bound (time
+ *   forced to 23:59:59.999 so the end date's full day is included).
+ * @param {string} [req.query.productId] - Restrict to one product.
+ * @param {string} [req.query.category] - Restrict to one category, by name.
+ * @param {'1'} [req.query.exportCsv] - When exactly `'1'`, responds with a
+ *   `text/csv` attachment instead of JSON.
+ * @returns {200} `{ sales: { dailySales, productSales } }` as JSON, or a CSV
+ *   attachment (`sales-analytics.csv`) when `exportCsv=1`.
+ * @returns {403} Caller is not an admin.
+ */
 router.get("/sales", requireAdmin, async (req, res) => {
   try {
     const { start, end, productId, category, exportCsv } = req.query;
@@ -205,8 +269,10 @@ router.get("/sales", requireAdmin, async (req, res) => {
     let endDate = end ? new Date(end) : null;
     if (endDate) endDate.setHours(23, 59, 59, 999);
 
-    // Build where clause for orders
-    const orderWhere = {};
+    // Build where clause for orders. Seeded with the revenue filter: this
+    // endpoint also backs the CSV export, and a sales report that counts
+    // abandoned baskets is worse than no report at all.
+    const orderWhere = { ...EARNED };
     if (startDate)
       orderWhere.createdAt = { ...orderWhere.createdAt, gte: startDate };
     if (endDate)
@@ -310,7 +376,18 @@ router.get("/sales", requireAdmin, async (req, res) => {
   }
 });
 
-// Get user analytics
+/**
+ * @route GET /api/analytics/users
+ * @access Admin only
+ * @description Signup growth over time (cumulative) plus the top 10
+ *   customers by spend. "Active"/spending customers are computed from
+ *   EARNED orders only, so someone who abandoned every checkout they ever
+ *   started does not appear as a spending customer.
+ * @returns {200} `{ users: { userGrowth, totalUsers, activeUsers,
+ *   topCustomers } }`. `userGrowth` is one entry per day a signup occurred,
+ *   with a running `totalUsers` total.
+ * @returns {403} Caller is not an admin.
+ */
 router.get("/users", requireAdmin, async (req, res) => {
   try {
     // User growth over time - aggregate by date
@@ -350,6 +427,9 @@ router.get("/users", requireAdmin, async (req, res) => {
       by: ["userId"],
       _count: { id: true },
       _sum: { total: true },
+      // A customer who filled a basket and left has spent nothing, and should
+      // not appear alongside customers who actually paid.
+      where: EARNED,
     });
 
     // Get user details for active users
@@ -390,7 +470,19 @@ router.get("/users", requireAdmin, async (req, res) => {
   }
 });
 
-// Get product analytics
+/**
+ * @route GET /api/analytics/products
+ * @access Admin only
+ * @description Per-product sales performance, a low-stock list, and revenue
+ *   rolled up by category. Sales figures (`totalSold`, `totalRevenue`,
+ *   `orderCount`) are scoped to EARNED orders; stock figures (`stock`,
+ *   `lowStockProducts`) are the live AVAILABLE key count and are unrelated
+ *   to order status.
+ * @returns {200} `{ products: { productPerformance, lowStockProducts,
+ *   categoryPerformance } }`. `lowStockProducts` includes any active
+ *   product with `stock <= LOW_STOCK_THRESHOLD` (10), sorted lowest first.
+ * @returns {403} Caller is not an admin.
+ */
 router.get("/products", requireAdmin, async (req, res) => {
   try {
     // Product performance
@@ -398,6 +490,7 @@ router.get("/products", requireAdmin, async (req, res) => {
       by: ["productId"],
       _sum: { quantity: true, price: true },
       _count: { id: true },
+      where: { order: EARNED },
     });
 
     // Get product details

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { User, Mail, Calendar, Edit, Save, X } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 
 export default function Profile() {
@@ -110,6 +109,7 @@ export default function Profile() {
                         onChange={handleInputChange}
                         className="px-3 py-1 border border-neutral-300 rounded text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         placeholder="First name"
+                aria-label="First name"
                       />
                       <input
                         type="text"
@@ -118,6 +118,7 @@ export default function Profile() {
                         onChange={handleInputChange}
                         className="px-3 py-1 border border-neutral-300 rounded text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         placeholder="Last name"
+                aria-label="Last name"
                       />
                     </div>
                   ) : (

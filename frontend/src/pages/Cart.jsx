@@ -22,7 +22,7 @@ export default function Cart() {
     if (isAuthenticated) {
       loadCart();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, loadCart]);
 
   const handleQuantityChange = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;

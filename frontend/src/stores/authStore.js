@@ -128,7 +128,7 @@ export const useAuthStore = create(
           const { user } = response.data;
           set({ user });
           return user;
-        } catch (error) {
+        } catch {
           return null;
         }
       },

@@ -196,7 +196,8 @@ export default function AdminCustomers() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={20} />
               <input
                 type="text"
-                placeholder="Search customers by name, email, or phone..."
+                placeholder="Search customers by name or email..."
+                aria-label="Search customers"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -208,6 +209,7 @@ export default function AdminCustomers() {
           <div className="flex items-center gap-2">
             <Filter className="text-neutral-400" size={20} />
             <select
+              aria-label="Filter customers by status"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -222,6 +224,7 @@ export default function AdminCustomers() {
           <div className="flex items-center gap-2">
             <ArrowUpDown className="text-neutral-400" size={20} />
             <select
+              aria-label="Sort customers"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"

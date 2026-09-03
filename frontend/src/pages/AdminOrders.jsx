@@ -178,6 +178,7 @@ export default function AdminOrders() {
               <input
                 type="text"
                 placeholder="Search orders by ID, customer name, or email..."
+                aria-label="Search orders"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -189,6 +190,7 @@ export default function AdminOrders() {
           <div className="flex items-center gap-2">
             <Filter className="text-neutral-400" size={20} />
             <select
+              aria-label="Filter orders by status"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -204,6 +206,7 @@ export default function AdminOrders() {
           <div className="flex items-center gap-2">
             <ArrowUpDown className="text-neutral-400" size={20} />
             <select
+              aria-label="Sort orders"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
@@ -231,6 +234,7 @@ export default function AdminOrders() {
             </span>
             <div className="flex items-center gap-2">
               <select
+                aria-label="Set status for selected orders"
                 onChange={(e) => {
                   selectedOrders.forEach(orderId => {
                     handleUpdateStatus(orderId, e.target.value);
@@ -327,7 +331,8 @@ export default function AdminOrders() {
                         <Eye size={16} />
                       </button>
                       <select
-                        value={order.status}
+                        aria-label="Change order status"
+              value={order.status}
                         onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
                         className="text-xs border border-neutral-300 rounded px-2 py-1"
                       >

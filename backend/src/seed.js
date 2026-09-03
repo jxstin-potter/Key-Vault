@@ -11,6 +11,12 @@ import bcrypt from 'bcryptjs';
 const PASSWORD_ALPHABET =
   'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
 
+/**
+ * Generate a random password from PASSWORD_ALPHABET (ambiguous glyphs
+ * excluded so it can be read back or retyped without confusion).
+ * @param {number} [len=24] - Desired password length.
+ * @returns {string} A random password of exactly `len` characters.
+ */
 function randomPassword(len = 24) {
   const bytes = crypto.randomBytes(len * 2);
   let out = '';
@@ -34,6 +40,10 @@ function randomPassword(len = 24) {
  *      printed once. Better an operator has to copy it out of the deploy log
  *      than that the account ships with a known password.
  *   3. Locally: a fixed dev password, so the usual workflow stays friction-free.
+ *
+ * @returns {{password: string, source: 'env'|'generated'|'dev-default'}}
+ *   The chosen password and which precedence rule produced it - `source` is
+ *   used later in main() to decide what (if anything) is safe to log.
  */
 function resolveAdminPassword() {
   const fromEnv = process.env.SEED_ADMIN_PASSWORD;
@@ -46,6 +56,14 @@ function resolveAdminPassword() {
   return { password: 'admin123', source: 'dev-default' };
 }
 
+/**
+ * URL-safe slug from a display name (lowercased, apostrophes dropped,
+ * runs of non-alphanumerics collapsed to a single hyphen, edges trimmed).
+ * Used for both category and product slugs, which routes/products.js and
+ * routes/categories.js accept as an alternative lookup key to the id.
+ * @param {string} name
+ * @returns {string} The slug, e.g. "Baldurs Gate 3" -> "baldurs-gate-3".
+ */
 const slugify = (name) =>
   name
     .toLowerCase()
@@ -57,13 +75,25 @@ const slugify = (name) =>
 const KEY_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const issuedKeys = new Set();
 
+/**
+ * One dash-free block of a generated key code.
+ * @param {number} len - Block length.
+ * @returns {string} `len` random characters from KEY_ALPHABET.
+ */
 const randomBlock = (len) =>
   Array.from(
     { length: len },
     () => KEY_ALPHABET[Math.floor(Math.random() * KEY_ALPHABET.length)]
   ).join('');
 
-// Console platforms use longer 25-character codes, storefronts use 15.
+/**
+ * Generate one fake-but-realistic redeemable key code, guaranteed unique
+ * within this seed run (tracked via the module-level `issuedKeys` set).
+ * Console platforms use longer 25-character codes, storefronts use 15,
+ * mirroring the real key-length conventions of each platform.
+ * @param {string} platform - One of the Platform enum values.
+ * @returns {string} A dash-separated code, e.g. "AB3XZ-7GHKL-PQRST".
+ */
 function generateKey(platform) {
   const blocks = ['XBOX', 'PLAYSTATION', 'NINTENDO'].includes(platform) ? 5 : 3;
   let code;
@@ -74,11 +104,16 @@ function generateKey(platform) {
   return code;
 }
 
-// Real portrait box art from Steam's public CDN, keyed by each game's Steam
-// App ID (verified against store.steampowered.com/api/appdetails before use -
-// see scripts/update-game-art.js for the full id list and verification
-// method). The frontend only ever reads images[0], so a single accurate cover
-// beats two generic stock photos.
+/**
+ * Real portrait box art from Steam's public CDN, keyed by each game's Steam
+ * App ID (verified against store.steampowered.com/api/appdetails before use -
+ * see scripts/update-game-art.js for the full id list and verification
+ * method). The frontend only ever reads images[0], so a single accurate cover
+ * beats two generic stock photos.
+ * @param {number} appId - Steam App ID.
+ * @returns {string[]} A one-element array containing the cover image URL
+ *   (an array, to match the `images` field's shape on the Product model).
+ */
 const steamArt = (appId) => [
   `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`
 ];
@@ -165,6 +200,22 @@ const REVIEW_COMMENTS = [
 // Seed
 // ---------------------------------------------------------------------------
 
+/**
+ * Seed entry point: run with `npm run db:seed`.
+ *
+ * Idempotent by design so it's safe to re-run against an existing database:
+ * users and categories use `upsert`, the admin's password is never reset if
+ * the account already exists (see the comment on that upsert below), and
+ * game/key creation is skipped entirely once any product exists (re-seeding
+ * from scratch requires `npm run db:reset` first, an explicit destructive
+ * step rather than an accidental side effect of running seed twice).
+ *
+ * @returns {Promise<void>}
+ * @throws {Error} If the database is unreachable within 30 seconds, or any
+ *   step fails - caught by the `.catch()` below, which logs and exits(1)
+ *   so a broken seed fails the deploy build rather than shipping quietly
+ *   half-seeded.
+ */
 async function main() {
   console.log('Seeding KeyVault...');
 
