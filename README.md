@@ -2,25 +2,22 @@
 
 A digital game key marketplace built with React 19, Express.js, and PostgreSQL. Browse games by genre and platform, buy a key, and receive it instantly. Deployed on Render (backend) and Vercel (frontend) with automatic CI/CD.
 
-**Live Demo**: https://commerce-flow-v2.vercel.app
+**Live Demo**: https://commerce-flow-v2.vercel.app | Test Account: `user@keyvault.com` / `user123`
 
-## 🎨 Screenshots
+## 🎨 Visual Highlights
 
-| Homepage | Browse Games |
-|----------|--------------|
-| ![Homepage](https://github.com/jxstin-potter/commerceFlow/raw/main/.github/assets/home.png) | ![Browse](https://github.com/jxstin-potter/commerceFlow/raw/main/.github/assets/browse.png) |
+### User-Facing Experience
+- 🎮 **Game Catalog**: Browse 100+ games with Steam cover art, ratings, and stock status
+- 💳 **Secure Checkout**: Stripe integration with real-time pricing and instant key delivery
+- 🔐 **My Keys Dashboard**: View purchased keys grouped by order with platform info
+- 📱 **Responsive Design**: Works on desktop, tablet, and mobile with touch-optimized controls
+- 🎯 **Professional Branding**: Custom key+D-pad logo with Steam-inspired color palette (blue-grey + signal blue)
 
-| Shopping Cart | My Keys Dashboard |
-|--------------|-------------------|
-| ![Cart](https://github.com/jxstin-potter/commerceFlow/raw/main/.github/assets/cart.png) | ![My Keys](https://github.com/jxstin-potter/commerceFlow/raw/main/.github/assets/mykeys.png) |
-
-### Key Features Shown
-- **Steam-inspired branding** with professional blue/teal palette
-- **Custom logo** (key with D-pad) across all pages
-- **Product grid** with platform badges, stock status, ratings
-- **Shopping cart** with real-time totals
-- **Instant key delivery** dashboard showing purchased games
-- **Responsive design** optimized for desktop and mobile
+### Admin Features  
+- 📦 **Product Management**: Create, edit, bulk import game keys
+- 📊 **Analytics Dashboard**: Track sales, revenue, and order metrics
+- 👥 **User Administration**: View customer profiles and order history
+- 🔑 **Key Inventory**: Manage stock levels, track reservations and fulfillment
 
 ## ✨ Features
 
