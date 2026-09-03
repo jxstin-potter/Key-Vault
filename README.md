@@ -8,11 +8,11 @@ A digital game key marketplace built with React 19, Express.js, and PostgreSQL. 
 
 | Homepage | Browse Games |
 |----------|--------------|
-| ![Homepage](.github/assets/home.png) | ![Browse](.github/assets/browse.png) |
+| ![Homepage](https://github.com/jxstin-potter/commerceFlow/raw/main/.github/assets/home.png) | ![Browse](https://github.com/jxstin-potter/commerceFlow/raw/main/.github/assets/browse.png) |
 
 | Shopping Cart | My Keys Dashboard |
 |--------------|-------------------|
-| ![Cart](.github/assets/cart.png) | ![My Keys](.github/assets/mykeys.png) |
+| ![Cart](https://github.com/jxstin-potter/commerceFlow/raw/main/.github/assets/cart.png) | ![My Keys](https://github.com/jxstin-potter/commerceFlow/raw/main/.github/assets/mykeys.png) |
 
 ### Key Features Shown
 - **Steam-inspired branding** with professional blue/teal palette
