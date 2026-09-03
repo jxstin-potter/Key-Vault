@@ -1,30 +1,29 @@
 # 🔑 KeyVault
 
-A digital game key marketplace with Stripe payments, instant delivery, and a professional admin dashboard. Built with React 19, Express.js, and PostgreSQL. Deployed on Vercel + Render with auto CI/CD.
+A digital game key marketplace with real Stripe payments, professional branding, and a production-ready admin dashboard. Built with React 19, Express.js, and PostgreSQL.
 
 **Live**: https://keyv.vercel.app | Demo: `user@keyvault.com` / `user123`
 
 ## What Makes It Stand Out
 
-- **Real Payment Flow**: Stripe Checkout with webhook-based key fulfillment, not a mock checkout
-- **Professional Branding**: Custom logo, Steam-inspired design system (color tokens, component layer, AA contrast)
-- **Production Ready**: Auto-deployed, health checks, rate limiting, JWT auth, CORS protection
-- **Smart Backend**: Key reservation system with TTL, idempotent webhook handlers, cart management
+- **Real Payments & Fulfillment**: Stripe Checkout → webhook key delivery with TTL reservation system
+- **Professional Branding**: Custom logo, Steam-inspired design (color tokens, AA contrast)
+- **Production Ready**: Auto-deployed, health checks, rate limiting, JWT auth, CORS, idempotent handlers
+- **100+ Real Games**: Steam cover art, live pricing, platform/region filtering
 
 ## Quick Start
 
-### Try It Now (2 seconds)
-Open https://keyv.vercel.app, login as `user@keyvault.com` / `user123`, click Games, add to cart, checkout.
+**Live Demo** (2 sec): https://keyv.vercel.app with `user@keyvault.com` / `user123`
 
-### Run Locally (5 minutes)
+**Local Setup** (5 min):
 ```bash
 git clone https://github.com/jxstin-potter/commerceFlow
 cd backend && npm install && npm run db:seed && npm run dev   # Terminal 1
 cd frontend && npm install && npm run dev                      # Terminal 2
-# Frontend: http://localhost:5173, Backend: http://localhost:5000
 ```
+Frontend: http://localhost:5173 | Backend: http://localhost:5000
 
-Requires Node.js 18+, PostgreSQL (or use Neon free tier), and `JWT_SECRET` in `.env`.
+Requires Node.js 18+, PostgreSQL, `JWT_SECRET`
 
 ## Tech Stack
 
@@ -32,30 +31,14 @@ Requires Node.js 18+, PostgreSQL (or use Neon free tier), and `JWT_SECRET` in `.
 **Backend**: Express.js, Prisma ORM, PostgreSQL, Stripe SDK  
 **Deployment**: Vercel (frontend), Render (backend), Neon (database)
 
-## Key Features
+## Features
 
-| User-Facing | Admin Panel |
-|-------------|-------------|
-| 🛒 Stripe checkout with instant key delivery | 📦 Product management with bulk import |
-| 🔐 My Keys dashboard (purchases grouped by order) | 📊 Analytics dashboard (sales, revenue) |
-| ⭐ Game ratings, stock status, platform filtering | 👥 User administration, order history |
-| 🎯 Responsive design (desktop/mobile/tablet) | 🔑 Key inventory tracking |
-
-## What's Included
-
-- **9k lines** of well-structured code
-- **15+ REST endpoints** (auth, products, cart, checkout, keys, admin)
-- **Webhook system** for Stripe payment confirmation and key delivery
-- **Admin dashboard** with analytics and product management
-- **Real game data** (100+ titles with Steam cover art)
-- **Production deployment** (auto-scaling, health checks, CI/CD)
-
-## Highlights
-
-✅ **Branding Done Right**: Custom key+D-pad logo, blue-grey + signal blue palette, measured AA contrast  
-✅ **Payment Flow**: Reserves keys during checkout, delivers on payment, handles webhook duplicates  
-✅ **Database Smart**: Prisma migrations, seeding, Prisma Studio included  
-✅ **Clean Deployment**: Render health checks, Vercel auto-deploy on push, proper env config  
+| User | Admin |
+|------|-------|
+| 🛒 Checkout & instant delivery | 📦 Product & key management |
+| 🔐 Order history | 📊 Analytics & revenue tracking |
+| ⭐ Ratings & filtering | 👥 User administration |
+| 🎯 Responsive design | 🔑 Inventory tracking |  
 
 ## Development
 
