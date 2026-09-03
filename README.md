@@ -13,8 +13,6 @@ A digital game key marketplace with real Stripe payments, professional branding,
 
 ## Quick Start
 
-**Live Demo** (2 sec): https://keyv.vercel.app with `user@keyvault.com` / `user123`
-
 **Local Setup** (5 min):
 ```bash
 git clone https://github.com/jxstin-potter/commerceFlow
